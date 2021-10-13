@@ -10,11 +10,15 @@ _param.h_
 _simulate.c_
 - the main program to run the network dynaimcs
 
+</br>
+
 ### **How to use**
 1. edit variables in param.h
 2. place param.h and simulate.c in the same folder
 3. compile simulate.c
 4. wait for results
+
+</br>
 
 ### **Output**
 export up to 4 files
@@ -37,6 +41,7 @@ _INI_CNFG_
 ### **Notes**
 1. results will be output in the same folder as the codes, i.e., next to them
 
+</br>
 
 ### **Optimization**
 
@@ -53,10 +58,10 @@ Visit here for more details: https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options
 This program creates multiple 1-/2-dimensional arrays when running. It accesses the array elements in the tightest loops. Fast memory is essential as the program freqently reads from / writes into RAM.
 Also, if you enable output for time series, try to write the file on a fast drive, such as SSD, it will be substantially faster. You can change the output path for time series data file in 'param.h'.
 
-<\br>
-<\br>
+</br>
 ___
-<\br>
+</br>
+</br>
 
 ## **Analysing Network and Their Dynamics**
 

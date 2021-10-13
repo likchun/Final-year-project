@@ -2,6 +2,8 @@
 
 ## **Network Dynaimcs Simulation**
 
+</br>
+
 ### **Files**
 
 _param.h_
@@ -59,13 +61,17 @@ This program creates multiple 1-/2-dimensional arrays when running. It accesses 
 Also, if you enable output for time series, try to write the file on a fast drive, such as SSD, it will be substantially faster. You can change the output path for time series data file in 'param.h'.
 
 </br>
+
 ___
+
 </br>
 </br>
 
 ## **Analysing Network and Their Dynamics**
 
 ### **Files**
+
+</br>
 
 _coupling.py_
 - calculate

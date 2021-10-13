@@ -1,4 +1,4 @@
-###### A Final Year Project in Autumn 2021, CUHK
+###### A Final Year Project in CUHK, Autumn 2021
 
 ## **Network Dynaimcs Simulation**
 

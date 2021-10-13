@@ -1,6 +1,4 @@
-# Neuron-Network-Study
-###### A Final Year Project
-
+###### A Final Year Project in Autumn 2021, CUHK
 
 ## **Network Dynaimcs Simulation**
 

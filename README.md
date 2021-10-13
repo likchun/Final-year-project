@@ -40,6 +40,8 @@ _OUT_INFO_
 _INI_CNFG_
 - same as _OUT_INFO_, designated for easy computer program importation
 
+</br>
+
 ### **Notes**
 1. results will be output in the same folder as the codes, i.e., next to them
 
@@ -62,7 +64,6 @@ Also, if you enable output for time series, try to write the file on a fast driv
 
 ___
 
-</br>
 </br>
 
 # Analysing Network and Their Dynamics

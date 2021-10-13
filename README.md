@@ -2,7 +2,7 @@
 
 ## **Network Dynaimcs Simulation**
 
-#### **Files**
+### **Files**
 
 _param.h_
 - edit all the variables & settings here
@@ -10,13 +10,13 @@ _param.h_
 _simulate.c_
 - the main program to run the network dynaimcs
 
-#### **How to use**
+### **How to use**
 1. edit variables in param.h
 2. place param.h and simulate.c in the same folder
 3. compile simulate.c
 4. wait for results
 
-#### **Output**
+### **Output**
 export up to 4 files
 
 _OUT_SPIK_
@@ -34,12 +34,12 @@ _OUT_INFO_
 _INI_CNFG_
 - same as _OUT_INFO_, designated for easy computer program importation
 
-#### **Notes**
+### **Notes**
 1. results will be output in the same folder as the codes, i.e., next to them
 
 ## **Analysing Network and Their Dynamics**
 
-#### **Files**
+### **Files**
 
 _coupling.py_
 - calculate

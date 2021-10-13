@@ -19,12 +19,11 @@ _simulate.c_
 #### **Notes**
 1. results will be output in the same folder as the codes, i.e., next to them
 
-## **Analysing Network and their Dynamics**
+## **Analysing Network and Their Dynamics**
 
 #### **Files**
 
 _coupling.py_
-  functions include:
 - calculate
   - connection probability
   - statistics of synaptic weight of a network
@@ -34,7 +33,6 @@ _coupling.py_
   - average synaptic weight distribution
 
 _spiking.py_
-  functions include:
 - calculate
   - average firing rate and its statistics
   - statistics of ISI (inter-spike interval)
@@ -49,7 +47,6 @@ _spiking.py_
   - ISI distribution
 
 _spiking_compare.py_
-  functions include:
 - calculate
   - changes in firing rate
   - ratio of change in firing rate

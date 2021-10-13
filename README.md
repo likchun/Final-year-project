@@ -1,14 +1,13 @@
-# Neuron-Network-Study
-##### A Final Year Project
+# Neuron-Network-Study ###### A Final Year Project
 
-**Network Dynaimcs Simulation**
+## **Network Dynaimcs Simulation**
 
 #### Files
 
-param.h
+_param.h_
 - edit all the variables & settings here
 
-simulate.c
+_simulate.c_
 - the main program to run the network dynaimcs
 
 #### To use

@@ -17,7 +17,7 @@ _simulate.c_
 ### **How to use**
 1. edit variables in param.h
 2. place param.h and simulate.c in the same folder
-3. compile simulate.c
+3. compile simulate.c: gcc -O3 simulate.c -o simulate
 4. wait for results
 
 </br>

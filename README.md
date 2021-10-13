@@ -1,4 +1,6 @@
-# Neuron-Network-Study ###### A Final Year Project
+# Neuron-Network-Study
+###### A Final Year Project
+
 
 ## **Network Dynaimcs Simulation**
 

@@ -18,15 +18,19 @@ _simulate.c_
 
 #### **Output**
 export up to 4 files
+
 _OUT_SPIK_
 - stores all the spiking data
   - column 1: index of nodes, starting from 1
   - column 2: number of spikes of the corresponding node
   - remining columns: time-stamps of each spikes
+
 _OUT_POTV_
 - stores the time series of membrane potential v(t) for the network dynamics
+
 _OUT_INFO_
 - stores all the variables and settings as well as execution time for a simulation, for later reference
+
 _INI_CNFG_
 - same as _OUT_INFO_, designated for easy computer program importation
 

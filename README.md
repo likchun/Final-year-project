@@ -26,7 +26,7 @@ _simulate.c_
 _coupling.py_
 - calculate
   - connection probability
-  - statistics of synaptic weight of a network
+  - statistics of synaptic weight
   - average synaptic weight
   - ratio of suppression & enhancement
 - plot

@@ -70,9 +70,9 @@ ___
 
 </br>
 
-### **Files**
+### **Functions in _tool.py_**
 
-_coupling.py_
+_Coupling_
 - calculate
   - connection probability
   - statistics of synaptic weight
@@ -81,7 +81,7 @@ _coupling.py_
 - plot
   - average synaptic weight distribution
 
-_spiking.py_
+_Spiking_
 - calculate
   - average firing rate and its statistics
   - statistics of ISI (inter-spike interval)
@@ -95,7 +95,7 @@ _spiking.py_
   - firing rate distribution
   - ISI distribution
 
-_spiking_compare.py_
+_Compare_
 - calculate
   - changes in firing rate
   - ratio of change in firing rate

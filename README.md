@@ -16,9 +16,21 @@ _simulate.c_
 
 ### **How to use**
 1. edit variables in param.h
-2. place param.h and simulate.c in the same folder
-3. compile simulate.c: ```gcc -O3 simulate.c -o simulate```
-4. wait for results
+   - set input matrix file in _input_data_
+   - set delimiter in _Delimiter_
+   - set time step in _dt_ and simulation duration in _T_
+3. place param.h and simulate.c in the same folder
+4. compile simulate.c in Windows CMD by ```gcc -O3 simulate.c -o simulate```
+5. wait for results
+
+</br>
+
+### **Advance settings & debug**
+- set output_potential_enabled to **true** if you need the time series for membrane potential. Caution: this function is work in progress, don't use this for very small time step _dt_ or very large simulation duration _T_.
+If the program terminates unexpectedly right after it's executed, it's possible that _InputBuffer_ is too small, so that the matrix cannot be read.
+For **DIV66** and **RANDOM** matrix, 15000 will be enough. Increase _InputBuffer_ if it's neccessary.
+If the program terminates unexpectedly after it's executed for some time, especially for lengthy simulation duration or strongly coupled networks, it's possible that _SpikeBuffer_ is too small.
+_SpikeBuffer_ must be greater than the total number of spikes of any node.
 
 </br>
 

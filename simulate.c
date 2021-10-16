@@ -345,32 +345,31 @@ float conductance_inh(int idx, float time) {
 // Handle runtime errors; exit and terminate all process
 void ErrorOccur(int error_code, char const * error_message, int error_number) {
     printf("\nFatal runtime error encountered.\n");
-    switch (error_code)
-    {
-    case 0:
-        printf("File %s cannot be opened.\n", error_message);
-        break;
-    case 1:
-        printf("Memory allocation error in %s.\n", error_message);
-        break;
-    case 2:
-        printf("Funtion read error: 'fgets'; 'token=NULL' at row %d.\n", error_number);
-        break;
-    case 3:
-        printf("Function conversion error: 'strtod(%s)' at row %d.\n Possible solution: increase value of InputBuffer (in HEADER FILE).\n", error_message, error_number);
-        break;
-    case 4:
-        printf("Classification error:\n the outgoing links of each node, when exist,\n are assumed be all excitatory or all inhibitory.\n inconsistency is detected.\n\nProgram terminated.\n");
-		break;
-    case 5:
-        printf("Setting error in: %s.\n Current setting is %d. Make changes in the HEADER FILE.\n", error_message, error_number);
-		break;
-    case 6:
-        printf("Terminated by user.\n");
-		break;
-    default:
-        printf("Unknown error.\n");
-        break;
+    switch (error_code) {
+        case 0:
+            printf("File %s cannot be opened.\n", error_message);
+            break;
+        case 1:
+            printf("Memory allocation error in %s.\n", error_message);
+            break;
+        case 2:
+            printf("Funtion read error: 'fgets'; 'token=NULL' at row %d.\n", error_number);
+            break;
+        case 3:
+            printf("Function conversion error: 'strtod(%s)' at row %d.\n Possible solution: increase value of InputBuffer (in HEADER FILE).\n", error_message, error_number);
+            break;
+        case 4:
+            printf("Classification error:\n the outgoing links of each node, when exist,\n are assumed be all excitatory or all inhibitory.\n inconsistency is detected.\n\nProgram terminated.\n");
+            break;
+        case 5:
+            printf("Setting error in: %s.\n Current setting is %d. Make changes in the HEADER FILE.\n", error_message, error_number);
+            break;
+        case 6:
+            printf("Terminated by user.\n");
+            break;
+        default:
+            printf("Unknown error.\n");
+            break;
     }
     printf("\n");
     exit(1);
@@ -443,6 +442,7 @@ void ClassifyNodeType() {
 			// Classified as E-nodes
 			if (coupling[i][j] > 0) {
 				if (node_type[j] == -1) {
+                    printf("\nAt coupling matrix [%d, %d]", i+1, j+1);
 					ErrorOccur(4, NULL, 0);
                 }
 				node_type[j] = 1;
@@ -450,6 +450,7 @@ void ClassifyNodeType() {
 			// Classified as I-nodes
 			else if (coupling[i][j] < 0) {
 				if (node_type[j] == 1) {
+					printf("\nAt coupling matrix [%d, %d]", i+1, j+1);
 					ErrorOccur(4, NULL, 0);
                 }
                 node_type[j] = -1;

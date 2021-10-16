@@ -26,13 +26,17 @@ _simulate.c_
 </br>
 
 ### **Advance settings & debug**
-- set output_potential_enabled to **true** if you need the time series for membrane potential. Caution: this function is work in progress, don't use this for very small time step _dt_ or very large simulation duration _T_.
+_output_potential_enabled_
+- set to **true** if you need the time series for membrane potential
+- Caution: this function is work in progress, don't use this for very small time step _dt_ or very large simulation duration _T_.
 
-If the program terminates unexpectedly right after it's executed, it's possible that _InputBuffer_ is too small, so that the matrix cannot be read.
-For **DIV66** and **RANDOM** matrix, 15000 will be enough. Increase _InputBuffer_ if it's neccessary.
+_InputBuffer_
+- if the program terminates unexpectedly right after it's executed, it's possible that _InputBuffer_ is too small, so that the matrix cannot be read.
+- for **DIV66** and **RANDOM** matrix, 15000 will be enough. Increase _InputBuffer_ if it's neccessary.
 
-If the program terminates unexpectedly after it's executed for some time, especially for lengthy simulation duration or strongly coupled networks, it's possible that _SpikeBuffer_ is too small.
-_SpikeBuffer_ must be greater than the total number of spikes of any node.
+_SpikeBuffer_
+- if the program terminates unexpectedly after it's executed for some time, especially for lengthy simulation duration or strongly coupled networks, it's possible that _SpikeBuffer_ is too small.
+- _SpikeBuffer_ must be greater than the total number of spikes of any node.
 
 </br>
 

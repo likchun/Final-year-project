@@ -25,7 +25,7 @@ _simulate.c_
 
 </br>
 
-### **Advance settings & debug**
+### **Advance Settings & Debug**
 _output_potential_enabled_
 - set to **true** if you need the time series for membrane potential
 - Caution: this function is work in progress, don't use this for very small time step _dt_ or very large simulation duration _T_.

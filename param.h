@@ -4,7 +4,7 @@
 // This file defines all the variables, such as total number of nodes N, time step dt, etc. as well as settings like MaxBuffer.
 // For more details, find README.
 
-// gcc -O3 simulate.c -o simulate
+// Use this command line in CMD (in Windows) to compile: gcc -O3 simulate.c -o simulate
 
 
 /* includes & defines */
@@ -15,9 +15,9 @@
 /* import */
 
 // Paths for file import
-char const* input_data = "Random.txt";
+char const* input_data = "DIV66.txt";
 // Delimiter for matrix file input; '\t' for DIV66.txt, ' ' for Random.txt
-#define Delimiter " "
+#define Delimiter "\t"
 
 
 /* simulation parameters */
@@ -36,11 +36,11 @@ float sigma = 3;
 /* suppress inh, enhance exc */
 
 bool suppress_inhibitory = false;
-bool enhance_excitatory = true;
-float suppress_inh_k = 0.5;
-float suppress_inh_sd = 0.011223070706649471;
-float enhance_exc_k = 0.5;
-float enhance_exc_sd = 0.011251121921284612;
+bool enhance_excitatory = false;
+float suppress_inh_k = 0;
+float suppress_inh_sd = 0.00374561833693429;
+float enhance_exc_k = 0;
+float enhance_exc_sd = 0.006411179005874374;
 
 
 /* spiking neuron model parameters */
@@ -88,5 +88,5 @@ char const* output_ini_cnfg = "INI_CNFG";
 
 // Max buffer for total number of spikes of each node
 #define SpikeBuffer 1500
-// Max buffer for matrix file input, increase it if 'Function conversion error' is encountered
+// Max buffer for matrix file input, increase it if the program terminates unexpectedly or 'Function conversion error' is encountered
 #define InputBuffer 15000

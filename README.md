@@ -68,7 +68,7 @@ _INI_CNFG_
 ### **Optimization**
 
 #### Choice of compiler
-After compiling the source code with several C compilerson Windows system, MinGW TDM-GCC 64 seems to be a good choice. Its running time is lesser than Cygwin64, the attached terminal of Visual Studio Code and MinGW 64/32.
+After compiling the source code with several C compilerson Windows system, MinGW TDM-GCC 64 seems to be a good choice. Its execution time is shorter.
 You can find MinGW TDM-GCC 64 here: https://jmeubank.github.io/tdm-gcc/
 
 #### Compiling flag

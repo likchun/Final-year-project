@@ -34,7 +34,9 @@ int exc_node_idx[N][N] = {0}, inh_node_idx[N][N] = {0};
 
 /* function prototypes */
 
-void SuppressInhibition();
+void SuppressInhibitory();
+void EnhanceInhibitory();
+void SuppressExcitatory();
 void EnhanceExcitatory();
 
 int random_integer(int upper_limit, int lower_limit);
@@ -44,6 +46,8 @@ float update_recovery(int node_idx, float recovery_variable, float membrane_pote
 float conductance_exc(int node_idx, float time);
 float conductance_inh(int node_idx, float time);
 void ErrorOccur(int error_code, char const * error_message, int error_number);
+bool IsExactlyOneBooleanTrue(bool, bool, bool, bool);
+void SuppressOrEnhanceNetwork();
 void SetInitialValues();
 void PopulateCouplingMatrix(FILE* fp_read);
 void FastReferenceToNodeType();
@@ -60,6 +64,7 @@ int main(int argc, char *argv[])
 
     int idx = 0, jdx = 0, timestep = 0;
     float t = 0, sqrt_dt = sqrt(dt), current = 0, noise = 0;
+    float potential_temp = 0;
 
     if (history_truncation == false) {
         trunc_time_exc = tn;
@@ -102,12 +107,8 @@ int main(int argc, char *argv[])
     FastReferenceToNodeType();
 
     ClassifyNodeType();
-
-    if (suppress_inhibitory) {
-        SuppressInhibition();
-    } else if (enhance_excitatory) {
-        EnhanceExcitatory();
-    }
+	
+	SuppressOrEnhanceNetwork();
 
     fclose(fp_read);
 
@@ -143,9 +144,12 @@ int main(int argc, char *argv[])
                 noise = sigma * gaussian_random();
 
                 // Main calculations
-                current = beta*(conductance_exc(idx, t)*(thresh_v_exc-potential[idx]) - conductance_inh(idx, t)*(potential[idx]-thresh_v_inh));
-                potential[idx] += (update_potential(potential[idx], recovery[idx], current)) * dt + noise * sqrt_dt;
-                recovery[idx] += update_recovery(idx, potential[idx], recovery[idx]) * dt;
+                potential_temp = potential[idx];
+
+                current = beta*(conductance_exc(idx, t)*(thresh_v_exc-potential_temp) - conductance_inh(idx, t)*(potential_temp-thresh_v_inh));
+
+                potential[idx] += (update_potential(potential_temp, recovery[idx], current)) * dt + noise * sqrt_dt;
+                recovery[idx] += update_recovery(idx, potential_temp, recovery[idx]) * dt;
                 
                 // Temporarily store potential into temporary[][]
                 temporary[idx][timestep] = potential[idx];
@@ -184,9 +188,12 @@ int main(int argc, char *argv[])
 
                 noise = sigma * gaussian_random();
 
-                current = beta*(conductance_exc(idx, t)*(thresh_v_exc-potential[idx]) - conductance_inh(idx, t)*(potential[idx]-thresh_v_inh));
-                potential[idx] += (update_potential(potential[idx], recovery[idx], current)) * dt + noise * sqrt_dt;
-                recovery[idx] += update_recovery(idx, potential[idx], recovery[idx]) * dt;
+                potential_temp = potential[idx];
+
+                current = beta*(conductance_exc(idx, t)*(thresh_v_exc-potential_temp) - conductance_inh(idx, t)*(potential_temp-thresh_v_inh));
+
+                potential[idx] += (update_potential(potential_temp, recovery[idx], current)) * dt + noise * sqrt_dt;
+                recovery[idx] += update_recovery(idx, potential_temp, recovery[idx]) * dt;
                 
                 // No time series data output here
                 
@@ -226,7 +233,7 @@ int main(int argc, char *argv[])
             }
             fprintf(fp_spik, "\n");
         }
-    fclose(fp_spik);
+        fclose(fp_spik);
     }
     
     // Export data for OUT_INFO.txt
@@ -251,15 +258,40 @@ int main(int argc, char *argv[])
 }
 
 
-/* functions */
+/* functions (suppression / enhancement) */
 
-void SuppressInhibition() {
+void SuppressInhibitory() {
     for (int i = 0; i < N; i++) {
-        for (int j = 0; j < inh_node_num[i]; j++) {
-            coupling[i][inh_node_idx[i][j]] += suppress_inh_k * suppress_inh_sd;
-            if (coupling[i][inh_node_idx[i][j]] > 0) {
-                coupling[i][inh_node_idx[i][j]] = 0;
+        for (int j = 0; j < N; j++) {
+            if (coupling[i][j] < 0) {
+                coupling[i][j] += alter_inh_k * alter_inh_sd;
+                if (coupling[i][j] > 0) {
+                    coupling[i][j] = 0;
+                }
             }
+        }
+    }
+}
+
+void EnhanceInhibitory() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            if (coupling[i][j] < 0) {
+                coupling[i][j] -= alter_inh_k * alter_inh_sd;
+            }
+        }
+    }
+}
+
+void SuppressExcitatory() {
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+			if (coupling[i][j] > 0) {
+				coupling[i][j] -=  alter_exc_k * alter_exc_sd;
+				if (coupling[i][j] < 0) {
+					coupling[i][j] = 0;
+				}
+			}
         }
     }
 }
@@ -268,7 +300,7 @@ void EnhanceExcitatory() {
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
 			if (coupling[i][j] > 0) {
-				coupling[i][j] +=  enhance_exc_k * enhance_exc_sd;
+				coupling[i][j] +=  alter_exc_k * alter_exc_sd;
 			}
         }
     }
@@ -367,12 +399,44 @@ void ErrorOccur(int error_code, char const * error_message, int error_number) {
         case 6:
             printf("Terminated by user.\n");
             break;
-        default:
+		case 7:
+			printf("You can only suppress or enhance one type of node.\nIn settings: 'suppress, enhance', you can only enable one of them.\n");
+			break;
+		default:
             printf("Unknown error.\n");
             break;
     }
     printf("\n");
     exit(1);
+}
+
+bool IsExactlyOneBooleanTrue(bool b1, bool b2, bool b3, bool b4) {
+	bool areAnyTrue = false;
+	bool areTwoTrue = false;
+	bool bool_arr[4] = {b1, b2, b3, b4};
+	for (int i = 0; (!areTwoTrue) && (i < 4); i++) {
+		areTwoTrue = (areAnyTrue && bool_arr[i]);
+		areAnyTrue |= bool_arr[i];
+	}
+	return ((areAnyTrue) && (!areTwoTrue));
+}
+
+void SuppressOrEnhanceNetwork() {
+	if (suppress_inhibitory || enhance_inhibitory || suppress_excitatory || enhance_excitatory) {
+		if (!IsExactlyOneBooleanTrue(suppress_inhibitory,enhance_inhibitory,suppress_excitatory,enhance_excitatory)) {
+			ErrorOccur(7, NULL, 0);
+		}
+	}
+
+    if (suppress_inhibitory) {
+        SuppressInhibitory();
+    } else if (enhance_inhibitory) {
+        EnhanceInhibitory();
+	} else if (suppress_excitatory) {
+        SuppressExcitatory();
+    } else if (enhance_excitatory) {
+        EnhanceExcitatory();
+    }
 }
 
 // Setting initial values v0 & u0 for each node, using 3 methos, refer to HEADER FILE
@@ -484,11 +548,11 @@ void Export_INFO(FILE* fp_info) {
     fprintf(fp_info, "Type of noise: Gaussian white\n");
 	fprintf(fp_info, "\n>> Suppress INH, Enhance EXC <<\n\n");
 	fprintf(fp_info, "Suppress inhibitory: %s\n", suppress_inhibitory ? "true" : "false");
-	fprintf(fp_info, "  suppress k: %f\n", suppress_inh_k);
-	fprintf(fp_info, "  suppress sd: %f\n", suppress_inh_sd);
+	fprintf(fp_info, "  suppress k: %f\n", alter_inh_k);
+	fprintf(fp_info, "  suppress sd: %f\n", alter_inh_sd);
 	fprintf(fp_info, "Enhance excitatory: %s\n", enhance_excitatory ? "true" : "false");
-	fprintf(fp_info, "  enhance k: %f\n", enhance_exc_k);
-	fprintf(fp_info, "  enhance sd: %f\n", enhance_exc_sd);
+	fprintf(fp_info, "  enhance k: %f\n", alter_exc_k);
+	fprintf(fp_info, "  enhance sd: %f\n", alter_exc_sd);
     fprintf(fp_info, "\n>> Parameters for the Izhikevich's Neuron Spiking Model <<\n\n");
     fprintf(fp_info, "Method to generate randomize initial values: ");
     if (init_val_rnd_method == 0) {
@@ -504,14 +568,14 @@ void Export_INFO(FILE* fp_info) {
     }
     fprintf(fp_info, "\nParameters for excitatory node:\n  a: %f, b: %f, c: %f, d: %f\n", a_exc, b_exc, c_exc, d_exc);
     fprintf(fp_info, "Parameters for inhibitory node:\n  a: %f, b: %f, c: %f, d: %f\n", a_inh, b_inh, c_inh, d_inh);
-    fprintf(fp_info, "\nOther parameters for model:\n  threshold potential (excitory): %f\n  threshold potential (inhibitory): %f\n", thresh_v_exc, thresh_v_inh);
+    fprintf(fp_info, "\nOther parameters for model:\n  threshold potential (excitatory): %f\n  threshold potential (inhibitory): %f\n", thresh_v_exc, thresh_v_inh);
     fprintf(fp_info, "  tau_exc: %f, tau_inh: %f\n", tau_exc, tau_inh);
     fprintf(fp_info, "  conductance G amplifying constant, beta: %f\n", beta);
 	fprintf(fp_info, "\n>> Simulation Settings <<\n\n");
     fprintf(fp_info, "Seed for generating random numbers: %f\n", seed_for_random);
     fprintf(fp_info, "Spiking history truncation: %s\n", history_truncation ? "true" : "false");
     if (history_truncation == true) {
-    fprintf(fp_info, "  truncation time (excitory): %f\n", trunc_time_exc);
+    fprintf(fp_info, "  truncation time (excitatory): %f\n", trunc_time_exc);
     fprintf(fp_info, "  truncation time (inhibitory): %f\n", trunc_time_inh);
     }
     fprintf(fp_info, "\n>> Other Settings <<\n\n");
@@ -529,7 +593,7 @@ void Export_CNFG(FILE *fp_cnfg) {
     // line 1: simualtion parameters
     fprintf(fp_cnfg, "%d\t%f\t%f\t%f\n", N, dt, tn, sigma);
 	// line 2: suppress inh, enhance exc
-	fprintf(fp_cnfg, "%d\t%f\t%f\t%d\t%f\t%f\n", suppress_inhibitory, suppress_inh_k, suppress_inh_sd, enhance_excitatory, enhance_exc_k, enhance_exc_sd);
+	fprintf(fp_cnfg, "%d\t%f\t%f\t%d\t%f\t%f\n", suppress_inhibitory, alter_inh_k, alter_inh_sd, enhance_excitatory, alter_exc_k, alter_exc_sd);
     // line 3: model parameters
     fprintf(fp_cnfg, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t", a_exc, b_exc, c_exc, d_exc, a_inh, b_inh, c_inh, d_inh, thresh_v_exc, thresh_v_inh, tau_exc, tau_inh, beta);
     fprintf(fp_cnfg, "%f\t%f\t%d\t%f\t%f\t%d\t%d\t%d\t%d\n", v0, u0, init_val_rnd_method, v0_rnd_sd, u0_rnd_sd, v0_rnd_max, v0_rnd_min, u0_rnd_max, u0_rnd_min);

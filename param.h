@@ -33,14 +33,16 @@ float tn = 10000;
 float sigma = 3;
 
 
-/* suppress inh, enhance exc */
+/* suppress, enhance */
 
 bool suppress_inhibitory = false;
+bool enhance_inhibitory = false;
+bool suppress_excitatory = false;
 bool enhance_excitatory = false;
-float suppress_inh_k = 0;
-float suppress_inh_sd = 0.00374561833693429;
-float enhance_exc_k = 0;
-float enhance_exc_sd = 0.006411179005874374;
+float alter_inh_k = 0;
+float alter_inh_sd = 0.00374561833693429;
+float alter_exc_k = 0;
+float alter_exc_sd = 0.006411179005874374;
 
 
 /* spiking neuron model parameters */

@@ -113,12 +113,18 @@ int main(int argc, char *argv[])
     fclose(fp_read);
 
     // Initialization ends here
-    printf("\n> Initialization finished.\n");
+    printf("\n[notice] Initialization completed.\n\n");
 
     time_t start_date_time = time(NULL);
     struct tm start_dt = *localtime(&start_date_time);
 
-    printf("\n> Computation begins at %02d:%02d:%02d.\n\n> It may take some time depending on your hardware.\n>> For reference, a tn = 7500 ms, dt = 0.125 ms simulation takes 15 min to complete on a 2017 i7 machine with an SSD.\n", start_dt.tm_hour, start_dt.tm_min, start_dt.tm_sec);
+    printf("[notice] Starting time: %02d:%02d:%02d.\n\n", start_dt.tm_hour, start_dt.tm_min, start_dt.tm_sec);
+    printf("[info] Network: %s\n[info] T: %0.0f, dt: %f\n[info] Random number seed: %0.0f\n", input_data, tn, dt, seed_for_random);
+	if (suppress_inhibitory) { printf("\n[info] Suppress Inhibitory: YES\n[info] Suppression level: %f\n[info] Inhibitory S.D.: %f", alter_inh_k, alter_inh_sd); }
+    if (enhance_inhibitory)  { printf("\n[info] Enhance Inhibitory: YES\n[info] Enhancement level: %f\n[info] Inhibitory S.D.: %f", alter_inh_k, alter_inh_sd); }
+    if (suppress_excitatory) { printf("\n[info] Suppress Excitatory: YES\n[info] Suppression level: %f\n[info] Excitatory S.D.: %f", alter_inh_k, alter_inh_sd); }
+    if (enhance_excitatory)  { printf("\n[info] Enhance Excitatory: YES\n[info] Enhancement level: %f\n[info] Excitatory S.D.: %f", alter_inh_k, alter_inh_sd); }
+
 
     // Start timer
     clock_t tic = clock();
@@ -238,8 +244,8 @@ int main(int argc, char *argv[])
     
     // Export data for OUT_INFO.txt
     FILE* fp_info = fopen(output_info, "w");
-    fprintf(fp_info, "> This computation was completed on %d-%02d-%02d %02d:%02d:%02d\n", end_dt.tm_year + 1900, end_dt.tm_mon + 1, end_dt.tm_mday, end_dt.tm_hour, end_dt.tm_min, end_dt.tm_sec);
-    fprintf(fp_info, "> Time taken: %f seconds\n\n", time_spent);
+    fprintf(fp_info, "Completed on %d-%02d-%02d %02d:%02d:%02d\n", end_dt.tm_year + 1900, end_dt.tm_mon + 1, end_dt.tm_mday, end_dt.tm_hour, end_dt.tm_min, end_dt.tm_sec);
+    fprintf(fp_info, "Execution time: %f seconds\n\n", time_spent);
     Export_INFO(fp_info);
     fclose(fp_info);
 
@@ -248,7 +254,7 @@ int main(int argc, char *argv[])
     Export_CNFG(fp_cnfg);
     fclose(fp_cnfg);
 
-    printf("\nComputation completed. Time taken: %f seconds.\n\n", time_spent);
+    printf("\n[notice] Completed. Time taken: %f seconds.\n\n", time_spent);
 
     if (output_potential_enabled == true) {
         free(temporary);
@@ -376,34 +382,34 @@ float conductance_inh(int idx, float time) {
 
 // Handle runtime errors; exit and terminate all process
 void ErrorOccur(int error_code, char const * error_message, int error_number) {
-    printf("\nFatal runtime error encountered.\n");
+    printf("\n<warning> Fatal runtime error encountered.\n");
     switch (error_code) {
         case 0:
-            printf("File %s cannot be opened.\n", error_message);
+            printf("<warning> File %s cannot be opened.\n", error_message);
             break;
         case 1:
-            printf("Memory allocation error in %s.\n", error_message);
+            printf("<warning> Memory allocation error in %s.\n", error_message);
             break;
         case 2:
-            printf("Funtion read error: 'fgets'; 'token=NULL' at row %d.\n", error_number);
+            printf("<warning> Funtion read error: 'fgets'; 'token=NULL' at row %d.\n", error_number);
             break;
         case 3:
-            printf("Function conversion error: 'strtod(%s)' at row %d.\n Possible solution: increase value of InputBuffer (in HEADER FILE).\n", error_message, error_number);
+            printf("<warning> Function conversion error: 'strtod(%s)' at row %d.\n          Possible solution: increase value of InputBuffer (in HEADER FILE).\n", error_message, error_number);
             break;
         case 4:
-            printf("Classification error:\n the outgoing links of each node, when exist,\n are assumed be all excitatory or all inhibitory.\n inconsistency is detected.\n\nProgram terminated.\n");
+            printf("<warning> Classification error: the outgoing links of each node, when exist, are assumed be all excitatory or all inhibitory, inconsistency is detected.\n");
             break;
         case 5:
-            printf("Setting error in: %s.\n Current setting is %d. Make changes in the HEADER FILE.\n", error_message, error_number);
+            printf("<warning> Setting error in: %s.\n Current setting is %d. Make changes in the HEADER FILE 'param.h'.\n", error_message, error_number);
             break;
         case 6:
-            printf("Terminated by user.\n");
+            printf("[notice] Terminated by user.\n");
             break;
 		case 7:
-			printf("You can only suppress or enhance one type of node.\nIn settings: 'suppress, enhance', you can only enable one of them.\n");
+			printf("<warning> You can only suppress or enhance one type of node.\n          In 'param.h', '/* synaptic weights suppression, enhancement */' section, you can only enable one of them.\n");
 			break;
 		default:
-            printf("Unknown error.\n");
+            printf("<warning> Unknown error.\n");
             break;
     }
     printf("\n");
@@ -548,11 +554,13 @@ void Export_INFO(FILE* fp_info) {
     fprintf(fp_info, "Type of noise: Gaussian white\n");
 	fprintf(fp_info, "\n>> Suppress INH, Enhance EXC <<\n\n");
 	fprintf(fp_info, "Suppress inhibitory: %s\n", suppress_inhibitory ? "true" : "false");
-	fprintf(fp_info, "  suppress k: %f\n", alter_inh_k);
-	fprintf(fp_info, "  suppress sd: %f\n", alter_inh_sd);
+	fprintf(fp_info, "Enhance inhibitory: %s\n", enhance_inhibitory ? "true" : "false");
+	fprintf(fp_info, "  suppression / enhancement level, k: %f\n", alter_inh_k);
+	fprintf(fp_info, "  suppression / enhancement sd: %f\n", alter_inh_sd);
+	fprintf(fp_info, "Suppress excitatory: %s\n", suppress_excitatory ? "true" : "false");
 	fprintf(fp_info, "Enhance excitatory: %s\n", enhance_excitatory ? "true" : "false");
-	fprintf(fp_info, "  enhance k: %f\n", alter_exc_k);
-	fprintf(fp_info, "  enhance sd: %f\n", alter_exc_sd);
+	fprintf(fp_info, "  suppression / enhancement level, k: %f\n", alter_exc_k);
+	fprintf(fp_info, "  suppression / enhancement sd: %f\n", alter_exc_sd);
     fprintf(fp_info, "\n>> Parameters for the Izhikevich's Neuron Spiking Model <<\n\n");
     fprintf(fp_info, "Method to generate randomize initial values: ");
     if (init_val_rnd_method == 0) {
@@ -592,8 +600,8 @@ void Export_INFO(FILE* fp_info) {
 void Export_CNFG(FILE *fp_cnfg) {
     // line 1: simualtion parameters
     fprintf(fp_cnfg, "%d\t%f\t%f\t%f\n", N, dt, tn, sigma);
-	// line 2: suppress inh, enhance exc
-	fprintf(fp_cnfg, "%d\t%f\t%f\t%d\t%f\t%f\n", suppress_inhibitory, alter_inh_k, alter_inh_sd, enhance_excitatory, alter_exc_k, alter_exc_sd);
+	// line 2: synaptic weights suppression, enhancement
+	fprintf(fp_cnfg, "%d\t%d\t%f\t%f\t%d\t%d\t%f\t%f\n", suppress_inhibitory, enhance_inhibitory, alter_inh_k, alter_inh_sd, suppress_excitatory, enhance_excitatory, alter_exc_k, alter_exc_sd);
     // line 3: model parameters
     fprintf(fp_cnfg, "%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t", a_exc, b_exc, c_exc, d_exc, a_inh, b_inh, c_inh, d_inh, thresh_v_exc, thresh_v_inh, tau_exc, tau_inh, beta);
     fprintf(fp_cnfg, "%f\t%f\t%d\t%f\t%f\t%d\t%d\t%d\t%d\n", v0, u0, init_val_rnd_method, v0_rnd_sd, u0_rnd_sd, v0_rnd_max, v0_rnd_min, u0_rnd_max, u0_rnd_min);

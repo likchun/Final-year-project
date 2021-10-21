@@ -1,6 +1,7 @@
 import os, csv, math
 import numpy as np
 from scipy import stats
+import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -36,86 +37,266 @@ class Coupling:
         def __init__(self, Coupling):
             self.Coupling = Coupling
             self.Nsize = np.shape(self.Coupling)[0]
-            self.ExcitatoryWeight = np.array([np.array([pos_weight for pos_weight in self.Coupling[idx][self.Coupling[idx] > 0]]) for idx in range(self.Nsize)], dtype=object)
-            self.InhibitoryWeight = np.array([np.array([neg_weight for neg_weight in self.Coupling[idx][self.Coupling[idx] < 0]]) for idx in range(self.Nsize)], dtype=object)
-            self.ExcitatoryWeight_flatten = np.array(self.Coupling.flatten()[self.Coupling.flatten() > 0])
-            self.InhibitoryWeight_flatten = np.array(self.Coupling.flatten()[self.Coupling.flatten() < 0])
-
-        def CouplingWeightBound(self, print_console=True):
-            min_coupling_weight = np.amin(self.Coupling)
-            max_coupling_weight = np.amax(self.Coupling)
-            if print_console == True:
-                print('Minimum coupling weight: {}, Maximum: {}'.format(min_coupling_weight, max_coupling_weight))
-            return min_coupling_weight, max_coupling_weight
+            self.PositiveWeight = np.array([np.array([pos_weight for pos_weight in self.Coupling[idx][self.Coupling[idx] > 0]]) for idx in range(self.Nsize)], dtype=object)
+            self.NegativeWeight = np.array([np.array([neg_weight for neg_weight in self.Coupling[idx][self.Coupling[idx] < 0]]) for idx in range(self.Nsize)], dtype=object)
+            self.PositiveWeight_flatten = np.array(self.Coupling.flatten()[self.Coupling.flatten() > 0])
+            self.NegativeWeight_flatten = np.array(self.Coupling.flatten()[self.Coupling.flatten() < 0])
 
         def ConnectionProbability(self, print_console=True):
+            """
+            Print or return the connection probability of a given network.
+
+            Prameters
+            ---------
+            print_console : bool
+                Outputs the result in the console.
+
+            Return
+            ------
+            connection_probability : float
+
+            """
             number_of_links = len(np.argwhere(self.Coupling.flatten()))
             connection_probability = number_of_links / ( self.Nsize * (self.Nsize-1) )
             if print_console == True:
-                print('Connection probability: {}'.format(connection_probability))
+                print('Connection probability:\t{}'.format(connection_probability))
             return connection_probability
+            
+        def SynapticWeightBounds(self, print_console=True):
+            """
+            Print or return the minimum and maximum synaptic weight of a given network.
+
+            Prameters
+            ---------
+            print_console : bool
+                Outputs the result in the console.
+
+            Return
+            ------
+            min_synaptic_weight : float
+            max_synaptic_weight : float
+
+            """
+            min_synaptic_weight = np.amin(self.Coupling)
+            max_synaptic_weight = np.amax(self.Coupling)
+            if print_console == True:
+                print('Minimum synaptic weight:\t{}\nMaximum synaptic weight:\t{}'.format(min_synaptic_weight, max_synaptic_weight))
+            return min_synaptic_weight, max_synaptic_weight
 
         def SynapticWeight_Stat(self, print_console=True):
+            """
+            Print or return the mean and population standard deviation of synaptic weights of a given network.
+
+            Prameters
+            ---------
+            print_console : bool
+                Outputs the result in the console.
+
+            Return
+            ------
+            synaptic_weight_mean : float
+            synaptic_weight_sd : float
+
+            """
             synaptic_weight_mean = np.mean(self.Coupling.flatten()[np.nonzero(self.Coupling.flatten())])
             synaptic_weight_sd = np.std(self.Coupling.flatten()[np.nonzero(self.Coupling.flatten())])
             if print_console == True:
-                print('Mean of coupling weight: {}'.format(synaptic_weight_mean))
-                print('SD of coupling weight: {}'.format(synaptic_weight_sd))
+                print('Mean of all synaptic weights:\t{}'.format(synaptic_weight_mean))
+                print('S.D. of all synaptic weights:\t{}'.format(synaptic_weight_sd))
             return synaptic_weight_mean, synaptic_weight_sd
 
-        def ExcitatorySynapticWeight_Stat(self, print_console=True):
-            excitatory_weight_mean = np.mean(self.ExcitatoryWeight_flatten)
-            excitatory_weight_sd = np.std(self.ExcitatoryWeight_flatten)
-            if print_console == True:
-                print('Mean of excitatory node weight: {}'.format(excitatory_weight_mean))
-                print('SD of excitatory node weight: {}'.format(excitatory_weight_sd))
-            return excitatory_weight_mean, excitatory_weight_sd
+        def PositiveSynapticWeight_Stat(self, print_console=True):
+            """
+            Print or return the mean and population standard deviation of positive synaptic weights of a given network.
 
-        def InhibitorySynapticWeight_Stat(self, print_console=True):
-            inhibitory_weight_mean = np.mean(self.InhibitoryWeight_flatten)
-            inhibitory_weight_sd = np.std(self.InhibitoryWeight_flatten)
+            Prameters
+            ---------
+            print_console : bool
+                Outputs the result in the console.
+
+            Return
+            ------
+            positive_weight_mean : float
+            positive_weight_sd : float
+
+            """
+            positive_weight_mean = np.mean(self.PositiveWeight_flatten)
+            positive_weight_sd = np.std(self.PositiveWeight_flatten)
             if print_console == True:
-                print('Mean of inhibitory node weight: {}'.format(inhibitory_weight_mean))
-                print('SD of inhibitory node weight: {}'.format(inhibitory_weight_sd))
-            return inhibitory_weight_mean, inhibitory_weight_sd
+                print('Mean of synaptic weight of positive links:\t{}'.format(positive_weight_mean))
+                print('S.D. of synaptic weight of positive links:\t{}'.format(positive_weight_sd))
+            return positive_weight_mean, positive_weight_sd
+
+        def NegativeSynapticWeight_Stat(self, print_console=True):
+            """
+            Print or return the mean and population standard deviation of negative synaptic weights of a given network.
+
+            Prameters
+            ---------
+            print_console : bool
+                Outputs the result in the console.
+
+            Return
+            ------
+            negative_weight_mean : float
+            negative_weight_sd : float
+
+            """
+            negative_weight_mean = np.mean(self.NegativeWeight_flatten)
+            negative_weight_sd = np.std(self.NegativeWeight_flatten)
+            if print_console == True:
+                print('Mean of synaptic weight of negative links:\t{}'.format(negative_weight_mean))
+                print('S.D. of synaptic weight of negative links:\t{}'.format(negative_weight_sd))
+            return negative_weight_mean, negative_weight_sd
 
         def AverageSynapticWeight_ExcitatoryIncomingLinks(self, idx, print_console=True):
+            """
+            Print or return the average synaptic weight of excitatory incoming links of a specific node in a given network.
+
+            Prameters
+            ---------
+            idx : int
+                The index of node to be calculated. Index starts from 1.
+            print_console : bool
+                Outputs the result in the console.
+
+            Return
+            ------
+            avg_syn_weight_exc_in : float
+
+            Notes
+            -----
+            Denoted by s+_in(i).
+
+            """
             # index of node starts from 1, end with 4095
             # s+_in(i)
-            avg_syn_weight_exc_in = np.sum(self.ExcitatoryWeight[idx-1]) / len(self.ExcitatoryWeight[idx-1])
+            avg_syn_weight_exc_in = np.sum(self.PositiveWeight[idx-1]) / len(self.PositiveWeight[idx-1])
             if print_console == True:
                 print('Average synaptic weight of excitatory incoming links s+_in({}): {}'.format(idx, avg_syn_weight_exc_in))
             return avg_syn_weight_exc_in
 
         def AverageSynapticWeight_InhibitoryIncomingLinks(self, idx, print_console=True):
+            """
+            Print or return the average synaptic weight of inhibitory incoming links of a specific node in a given network.
+
+            Prameters
+            ---------
+            idx : int
+                The index of node to be calculated. Index starts from 1.
+            print_console : bool
+                Outputs the result in the console.
+
+            Return
+            ------
+            avg_syn_weight_inh_in : float
+
+            Notes
+            -----
+            Denoted by s-_in(i).
+
+            """
             # s-_in(i)
-            avg_syn_weight_inh_in = np.sum(self.InhibitoryWeight[idx-1]) / len(self.InhibitoryWeight[idx-1])
+            avg_syn_weight_inh_in = np.sum(self.NegativeWeight[idx-1]) / len(self.NegativeWeight[idx-1])
             if print_console == True:
                 print('Average synaptic weight of inhibitory incoming links |s-_in({})|: {}'.format(idx, avg_syn_weight_inh_in))
             return avg_syn_weight_inh_in
         
         def AverageSynapticWeight_OutgoingLinks(self, idx, print_console=True):
+            """
+            Print or return the average synaptic weight of outgoing links of a specific node in a given network.
+
+            Prameters
+            ---------
+            idx : int
+                The index of node to be calculated. Index starts from 1.
+            print_console : bool
+                Outputs the result in the console.
+
+            Return
+            ------
+            avg_syn_weight_out : float
+
+            Notes
+            -----
+            Denoted by s_out(i).
+
+            """
             # s_out(i)
             avg_syn_weight_out = np.sum(self.Coupling.transpose()[idx-1]) / len(np.argwhere(self.Coupling.transpose()[idx-1]))
             if print_console == True:
                 print('Average synaptic weight of outgoing links |s_out({})|: {}'.format(idx, avg_syn_weight_out))
             return avg_syn_weight_out
 
-        def RatioOfSuppression(self, suppressed_values):
-            NewWeight = np.zeros((len(suppressed_values), len(self.InhibitoryWeight_flatten)))
-            avg_change_inh_weight = np.zeros(len(suppressed_values))
-            for count in range(0, len(suppressed_values)):
-                NewWeight[count] += self.InhibitoryWeight_flatten + suppressed_values[count]
-                NewWeight[count][NewWeight[count] > 0] = 0
-                avg_change_inh_weight[count] = np.mean(np.array(NewWeight[count]) - self.InhibitoryWeight_flatten)
-            avg_magnitude_inh_weight = np.mean(self.InhibitoryWeight_flatten)
-            ratio_of_suppression = np.abs(avg_change_inh_weight) / np.abs(avg_magnitude_inh_weight)
+        def RatioOfSuppression(self, suppressed_node_type: str, suppressed_values: list):
+            """
+            Return the ratio of suppression when synaptic weights of a given network are suppressed.
+
+            Prameters
+            ---------
+            suppressed_node_type : {'inhibitory', 'excitatory'}
+                The node type (inhibitory / excitatory) to be suppressed.
+                If suppressed node type = Inhibitory, the suppressed value is added to the synaptic weight of every negative links, but not greater than zero.
+                If suppressed node type = Excitatory, the suppressed value is subtracted from the synaptic weight of every positive links, but not smaller than zero.
+            suppressed_values : list of float
+                Suppressed value = suppression level k * S.D. of the suppressed node type.
+
+            Return
+            ------
+            ratio_of_suppression : float
+
+            Notes
+            -----
+            None.
+
+            """
+            avg_change_weight = np.zeros(len(suppressed_values))
+
+            if suppressed_node_type == 'inhibitory':
+                avg_magnitude_weight = np.mean(self.NegativeWeight_flatten)
+                NewWeight = np.zeros((len(suppressed_values), len(self.NegativeWeight_flatten)))
+                for count in range(0, len(suppressed_values)):
+                    NewWeight[count] += self.NegativeWeight_flatten + suppressed_values[count]
+                    NewWeight[count][NewWeight[count] > 0] = 0
+                    avg_change_weight[count] = np.mean(np.array(NewWeight[count]) - self.NegativeWeight_flatten)
+
+            if suppressed_node_type == 'excitatory':
+                avg_magnitude_weight = np.mean(self.PositiveWeight_flatten)
+                NewWeight = np.zeros((len(suppressed_values), len(self.PositiveWeight_flatten)))
+                for count in range(0, len(suppressed_values)):
+                    NewWeight[count] += self.PositiveWeight_flatten - suppressed_values[count]
+                    NewWeight[count][NewWeight[count] < 0] = 0
+                    avg_change_weight[count] = np.mean(np.array(NewWeight[count]) - self.PositiveWeight_flatten)
+            
+            ratio_of_suppression = np.abs(avg_change_weight) / np.abs(avg_magnitude_weight)
             return ratio_of_suppression
 
-        def RatioOfEnhancement(self, excited_values):
-            avg_change_exc_weight = np.full(len(excited_values), excited_values)
-            avg_magnitude_exc_weight = np.mean(self.ExcitatoryWeight_flatten)
-            ratio_of_enhancement = np.abs(avg_change_exc_weight) / np.abs(avg_magnitude_exc_weight)
+        def RatioOfEnhancement(self, enhanced_node_type: str, enhanced_values: list):
+            """
+            Return the ratio of enhancement when synaptic weights of a given network are enhanced.
+
+            Prameters
+            ---------
+            enhanced_node_type : {'inhibitory', 'excitatory'}
+                The node type (inhibitory / excitatory) to be enhanced.
+                If enhanced node type = Inhibitory, the enhanced value is subtracted from the synaptic weight of every negative links.
+                If enhanced node type = Excitatory, the enhanced value is added to the synaptic weight of every positive links.
+            enhanced_values : list of float
+                Enhanced value = enhancement level k * S.D. of the enhanced node type.
+
+            Return
+            ------
+            ratio_of_enhancement : float
+
+            Notes
+            -----
+            None.
+
+            """
+            avg_change_weight = np.full(len(enhanced_values), enhanced_values)
+            if enhanced_node_type == 'inhibitory': avg_magnitude_weight = np.mean(self.NegativeWeight_flatten)
+            if enhanced_node_type == 'excitatory': avg_magnitude_weight = np.mean(self.PositiveWeight_flatten)
+            ratio_of_enhancement = np.abs(avg_change_weight) / np.abs(avg_magnitude_weight)
             return ratio_of_enhancement
 
     class Plot:
@@ -123,14 +304,14 @@ class Coupling:
         def __init__(self, Coupling, output_path):
             self.Coupling = Coupling
             self.Nsize = np.shape(self.Coupling)[0]
-            self.ExcitatoryWeight = np.array([np.array([pos_weight for pos_weight in self.Coupling[idx][self.Coupling[idx] > 0]]) for idx in range(self.Nsize)], dtype=object)
-            self.InhibitoryWeight = np.array([np.array([neg_weight for neg_weight in self.Coupling[idx][self.Coupling[idx] < 0]]) for idx in range(self.Nsize)], dtype=object)
-            # self.ExcitatoryWeight_flatten = np.array(self.Coupling.flatten()[self.Coupling.flatten() > 0])
-            # self.InhibitoryWeight_flatten = np.array(self.Coupling.flatten()[self.Coupling.flatten() < 0])
+            self.PositiveWeight = np.array([np.array([pos_weight for pos_weight in self.Coupling[idx][self.Coupling[idx] > 0]]) for idx in range(self.Nsize)], dtype=object)
+            self.NegativeWeight = np.array([np.array([neg_weight for neg_weight in self.Coupling[idx][self.Coupling[idx] < 0]]) for idx in range(self.Nsize)], dtype=object)
+            # self.PositiveWeight_flatten = np.array(self.Coupling.flatten()[self.Coupling.flatten() > 0])
+            # self.NegativeWeight_flatten = np.array(self.Coupling.flatten()[self.Coupling.flatten() < 0])
             self.output_path = output_path
 
         def AverageSynapticWeight_ExcitatoryIncomingLinks(self, output_file='Average_Synaptic_Weight_Excitatory_Incoming_Links.svg', bins=100, show_norm=False):
-            AvgSynWeight_ExcIn = np.array([np.sum(self.ExcitatoryWeight[idx]) / len(self.ExcitatoryWeight[idx]) for idx in range(self.Nsize)], dtype=float)
+            AvgSynWeight_ExcIn = np.array([np.sum(self.PositiveWeight[idx]) / len(self.PositiveWeight[idx]) for idx in range(self.Nsize)], dtype=float)
             density, bin_edges = np.histogram(AvgSynWeight_ExcIn, bins=bins, density=True)
             x_value = (bin_edges[1:] + bin_edges[:-1]) / 2
 
@@ -149,7 +330,7 @@ class Coupling:
             plt.clf()
 
         def AverageSynapticWeight_InhibitoryIncomingLinks(self, output_file='Average_Synaptic_Weight_Inhibitory_Incoming_Links.svg', bins=100, show_norm=False):
-            AvgSynWeight_InhIn = -1 * np.array([np.sum(self.InhibitoryWeight[idx]) / len(self.InhibitoryWeight[idx]) for idx in range(self.Nsize)], dtype=float)
+            AvgSynWeight_InhIn = -1 * np.array([np.sum(self.NegativeWeight[idx]) / len(self.NegativeWeight[idx]) for idx in range(self.Nsize)], dtype=float)
             density, bin_edges = np.histogram(AvgSynWeight_InhIn, bins=bins, density=True)
             x_value = (bin_edges[1:] + bin_edges[:-1]) / 2
 
@@ -234,12 +415,26 @@ class Spiking:
             # self.Config[0][2] = tn
             self.output_path = output_path
 
-        def AverageFiringRate(self, console_print=True):
-            spike_count_average = np.mean(self.SpikeCount)
-            firing_rate_average = spike_count_average / float(self.Config[0][2]) * 1000
+        def SpikeCountBounds(self, console_print=True):
+            max_spike_count = np.amax(self.SpikeCount)
+            min_spike_count = np.amin(self.SpikeCount)
             if console_print == True:
-                print('Average firing rate: {}'.format(firing_rate_average))
-            return firing_rate_average
+                print('Maximum number of spike for nodes: {}'.format(max_spike_count))
+                print('Minimum number of spike for nodes: {}'.format(min_spike_count))
+            return min_spike_count, max_spike_count
+
+        def TotalNumberOfSpikes(self, console_print=True):
+            sum_spike_count = np.sum(self.SpikeCount)
+            if console_print == True:
+                print('Total number of spikes: {}'.format(sum_spike_count))
+            return sum_spike_count
+
+        def AverageFiringRate(self, console_print=True):
+            average_spike_count = np.mean(self.SpikeCount)
+            average_firing_rate = average_spike_count / float(self.Config[0][2]) * 1000
+            if console_print == True:
+                print('Average firing rate: {}'.format(average_firing_rate))
+            return average_firing_rate
 
         def FiringRate_Stat(self, console_print=True):
             FiringRate = self.SpikeCount / float(self.Config[0][2]) * 1000
@@ -280,6 +475,14 @@ class Spiking:
                         file_output.write('{}\n'.format(idx))
             return BurstingNode
 
+        def reformatSpikeData(self, output_file='OUT_SPIK_reformatted.txt'):
+            with open(self.output_path+output_file, 'w') as file_output:
+                for idx in range(int(self.Config[0][0])):
+                    file_output.write('{:.0f}'.format(self.SpikeCount[idx]))
+                    for timestamp in self.SpikeTimes[idx]:
+                        file_output.write('\t{:.0f}'.format(timestamp/float(self.Config[0][1])))
+                    file_output.write('\n')
+
 
     class Plot:
 
@@ -287,106 +490,205 @@ class Spiking:
             self.SpikeCount = SpikeCount
             self.SpikeTimes = SpikeTimes
             self.Config = Config
+            # self.Config[0][0] = N
+            # self.Config[0][1] = dt
+            # self.Config[0][2] = tn
             self.Nsize = int(self.Config[0][0])
             self.output_path = output_path
 
-        def reformatSpikeData(self, output_file='OUT_SPIK_reformatted.txt'):
-            with open(self.output_path+output_file, 'w') as file_output:
-                for idx in range(self.Nsize):
-                    file_output.write('{:.0f}'.format(self.SpikeCount[idx]))
-                    for timestamp in self.SpikeTimes[idx]:
-                        file_output.write('\t{:.0f}'.format(timestamp/float(self.Config[0][1])))
-                    file_output.write('\n')
+        def SpikeRaster(self, plot_horizontal_stretch=1, output_file='Spiking_Raster_Plot.png', file_label=''):
+            """
+            Plot a Raster Graph of Spiking Activity of a given network. Then export a PNG file.
 
-        def SpikeRaster(self, output_file='Spiking_Raster_Plot.png'):
-            start_node, end_node = 0, self.Nsize
+            Parameters
+            ----------
+            plot_horizontal_stretch : float or int
+                Stretches the plot horizontally by the `plot_horizontal_stretch` factor. Useful for plotting raster graphs for simulations with large simulation duration T.
+            output_file : str
+                Defines the output file name.
+            file_label : str
+                Appends a label / tag at the end of the file name.
 
-            fig, ax = plt.subplots(figsize=(9, 6), dpi=250)
+            Return
+            ------
+            None.
+
+            Notes
+            -----
+            None.
+
+            """
+            fig, ax = plt.subplots(figsize=(9*plot_horizontal_stretch, 6), dpi=250)
             count = 0
             for each_node in (self.SpikeTimes / 1000):
                 count += 1
                 ax.scatter(each_node, np.full(np.size(each_node), count), s=0.5, c='black')
             ax.set(xlabel='Time (s)', ylabel='Node index')
             ax.set_xlim(0, float(self.Config[0][2])/1000)
+            start_node, end_node = 0, self.Nsize
             ax.set_ylim(start_node-2, end_node+1)
             ax.grid(True)
-            fig.savefig(os.path.join(self.output_path, output_file))
-            plt.clf()
+
+            if file_label == '': output_file_plot = output_file + '.png'
+            else: output_file_plot = output_file + '_' + file_label + '.png'
+            fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
         
-        def FiringRateDistribution(self, bins=[0, 80, 1000], xrange=[0,20], yrange=[0,None], show_norm=False, output_file='Firing_Rate_Distribution', file_label=''):
+        def FiringRateDistribution(self, bins=[0, 80, 800], xrange=[0,10], yrange=[0,None], show_norm=False, output_file='Firing_Rate_Distribution', file_label='', plot_axes=None, info_list=[]):
+            """
+            Plot a Distribution of Firing Rate of a given network. Then export a SVG file or return an `~matplotlib.axes.Axes`.
+
+            Parameters
+            ----------
+            bins : list
+                Defines the lower, upper bounds of bins and the number of bins for histogram, in the following format: `[lower bound of bins, upper bound of bins, number of bins]`.
+            xrange : list
+                Defines the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
+            yrange : list
+                Defines the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit.
+            show_norm : bool
+                Displays a Gaussian distribution curve with mean and S.D. extracted from input data.
+            output_file : str
+                Defines the output file name.
+            file_label : str
+                Appends a label / tag at the end of the file name.
+            plot_axes
+                Takes the MATPLOTLIB 'axes' as input. Suppressed all file output functions when used. Plots will be return directly by the method, instead of exporting a file.
+            info_list : list
+                Specifies the style, legend of the current plot, in the following format: `[line style, legend]`.
+            
+            Return
+            ------
+            ~matplotlib.axes.Axes
+                Return `plot_axes`.
+
+            Notes
+            -----
+            When exporting a SVG file, an TXT file with the same name containing details of firing rate and bin size will also be exported.
+            `show_norm` and file output are disabled when `plot_axes` takes an matplotlib axes as an argument.
+
+            """
             FiringRate = self.SpikeCount / float(self.Config[0][2]) * 1000
+
             if np.amax(FiringRate) > bins[1]: print('Warning! Maximum of Firing Rate exceeds upper bound of bins range. Max Firing Rate: {}; Max bins range: {}'.format(np.amax(FiringRate), bins[1]))
             if np.amin(FiringRate) < bins[0]: print('Warning! Minimum of Firing Rate subceeds lower bound of bins range. Min Firing Rate: {}; Min bins range: {}'.format(np.amin(FiringRate), bins[0]))
             hist_density, bin_edges = np.histogram(FiringRate, bins=np.linspace(bins[0], bins[1], bins[2]), density=True)
-            # bin1 = np.linspace(0, 1.5, 8); bin2 = np.linspace(1.5, 70, 150)[1:]
-            # hist_density, bin_edges = np.histogram(FiringRate, bins=np.concatenate([bin1, bin2]), density=True)
             total_density = np.dot(hist_density, np.diff(bin_edges))
             x_value = (bin_edges[1:] + bin_edges[:-1]) / 2
 
-            fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-            ax.plot(x_value, hist_density, 'b^-', lw=2, label='Firing rate distribution')
-            if show_norm == True:
-                mu = np.mean(FiringRate.flatten()); sigma = np.std(FiringRate.flatten())
-                norm = stats.norm(loc=mu, scale=sigma)
-                ax.plot(x_value, norm.pdf(x_value), 'r--', lw=2, label='Normal distribution with same mean and sd')
-            ax.set(xlabel='Firing rate (Hz)', ylabel='Probability density')
-            ax.set_xlim(xrange[0], xrange[1]); ax.set_ylim(yrange[0], yrange[1])
-            ax.grid(True)
-            ax.legend()
+            # Export plot as SVG file
+            if plot_axes == None:
+                fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
+                ax.plot(x_value, hist_density, 'b^-', lw=2, label='Firing rate distribution')
 
-            if file_label == '': output_file_plot = output_file + '.svg'
-            else: output_file_plot = output_file + '_' + file_label + '.svg'
-            fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
-            if file_label == '': output_file_info = output_file + '.txt'
-            else: output_file_info = output_file + '_' + file_label + '.txt'
-            with open(self.output_path+output_file_info, 'w') as fp_info:
-                fp_info.write('### Plot information ###\n')
-                fp_info.write('Max firing rate: {}\n'.format(np.amax(FiringRate)))
-                fp_info.write('Min firing rate: {}\n'.format(np.amin(FiringRate)))
-                fp_info.write('Total density by areal summation: {}\n'.format(total_density))
-                fp_info.write('\n### Plot settings ###\n')
-                fp_info.write('Bin size: {}\n'.format((bins[1]-bins[0])/bins[2]))
-                fp_info.write('Bin bounds: lower: {}, upper: {}\n'.format(bins[0], bins[1]))
-                fp_info.write('Number of bins: {}\n'.format(bins[2]))
-                fp_info.write('Show Gaussian distribution: {}'.format(str(show_norm)))
+                if show_norm == True:
+                    mu = np.mean(FiringRate.flatten()); sigma = np.std(FiringRate.flatten())
+                    norm = stats.norm(loc=mu, scale=sigma)
+                    ax.plot(x_value, norm.pdf(x_value), 'r--', lw=2, label='Normal distribution with same mean and sd')
 
-        def InterSpikeIntervalDistribution(self, bins=[0.001, 10, 150], xrange=[0.001,1], output_file='Interspike_Interval_Distribution', file_label=''):
+                ax.set(xlabel='Firing rate (Hz)', ylabel='Probability density')
+                ax.set_xlim(xrange[0], xrange[1]); ax.set_ylim(yrange[0], yrange[1])
+                ax.grid(True)
+                ax.legend()
+
+                if file_label == '': output_file_plot = output_file + '.svg'
+                else: output_file_plot = output_file + '_' + file_label + '.svg'
+                fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
+
+                if file_label == '': output_file_info = output_file + '.txt'
+                else: output_file_info = output_file + '_' + file_label + '.txt'
+                with open(self.output_path+output_file_info, 'w') as fp_info:
+                    fp_info.write('### Plot information ###\n')
+                    fp_info.write('Max firing rate: {0}\nMin firing rate: {1}\n'.format(np.amax(FiringRate), np.amin(FiringRate)))
+                    fp_info.write('Total density by areal summation: {0}\n'.format(total_density))
+                    fp_info.write('\n### Plot settings ###\n')
+                    fp_info.write('Bin size: {0}\nBin bounds: lower: {1}, upper: {2}\nNumber of bins: {3}\n'.format( (bins[1]-bins[0])/bins[2], bins[0], bins[1], bins[2] ))
+                    fp_info.write('Show Gaussian distribution: {0}'.format(str(show_norm)))
+
+            # Return plot as matplotlib.axes
+            else:
+                ax = plot_axes
+                ax.plot(x_value, hist_density, info_list[0]+'-', lw=2, label=info_list[1])
+                return ax
+
+        def InterSpikeIntervalDistribution(self, bins=[0.0005,50,180], xrange=[0.0005,10], yrange=[0,None], output_file='Interspike_Interval_Distribution', file_label='', plot_axes=None, info_list=[]):
+            """
+            Plot a Distribution of Inter-spike Interval of a given network. Then export a SVG file or return an `~matplotlib.axes.Axes`.
+
+            Parameters
+            ----------
+            bins : list
+                Defines the lower, upper bounds of bins and the number of bins for histogram, in the following format: `[lower bound of bins, upper bound of bins, number of bins]`.
+            xrange : list
+                Defines the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
+            yrange : list
+                Defines the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit. If \'yrange\' contains zero, the condition will be ingored for log scale.
+            show_norm : bool
+                Displays a Gaussian distribution curve with mean and S.D. extracted from input data.
+            output_file : str
+                Defines the output file name.
+            file_label : str
+                Appends a label / tag at the end of the file name.
+            plot_axes
+                Takes the MATPLOTLIB 'axes' as input. Suppressed all file output functions when used. Plots will be return directly by the method, instead of exporting a file.
+            info_list : list
+                Specifies the style, legend of the current plot, in the following format: `[line style, legend]`.
+            
+            Return
+            ------
+            ~matplotlib.axes.Axes
+                Return `plot_axes`.
+
+            Notes
+            -----
+            When exporting a SVG file, an TXT file with the same name containing details of firing rate and bin size will also be exported.
+            `show_norm` and file output are disabled when `plot_axes` takes an matplotlib axes as an argument.
+
+            """
             IsI = np.empty(self.SpikeTimes.shape[0], dtype=object)
             for count in range(len(self.SpikeTimes)):
-                try: IsI[count] = np.diff(self.SpikeTimes[count])
-                except ValueError: IsI[count] = np.diff(np.array([0]))
+                try: IsI[count] = np.array(np.diff(self.SpikeTimes[count]), dtype=float)
+                except ValueError: IsI[count] = np.diff(np.array([0])); print('Value error.')
             IsI = np.concatenate([item for item in IsI.flatten()], 0) / 1000
+
             if np.amax(IsI) > bins[1]: print('Warning! Maximum of ISI exceeds upper bound of bins range. Max ISI: {}; Max bins range: {}'.format(np.amax(IsI), bins[1]))
             if np.amin(IsI) < bins[0]: print('Warning! Minimum of ISI subceeds lower bound of bins range. Min ISI: {}; Min bins range: {}'.format(np.amin(IsI), bins[0]))
-            bins[0] = math.log10(bins[0]); bins[1] = math.log10(bins[1]); xrange[0] = math.log10(xrange[0]); xrange[1] = math.log10(xrange[1])
+            bins[0] = math.log10(bins[0]); bins[1] = math.log10(bins[1])
             hist_density, bin_edges = np.histogram(IsI, bins=np.logspace(bins[0], bins[1], bins[2]))
             hist_density = np.array(hist_density, dtype=float)
             hist_density /= np.dot(hist_density, np.diff(bin_edges)) # normalization
             total_density = np.dot(hist_density, np.diff(bin_edges))
             x_value = (bin_edges[1:] + bin_edges[:-1]) / 2
             
-            fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-            ax.semilogx(x_value, hist_density, 'b^-', lw=2, label='Log ISI distribution')
-            ax.set(xlabel='ISI (s)', ylabel='Probability density')
-            # ax.set_xlim(0, None)
-            ax.set_ylim(0, None)
-            ax.grid(True)
-            # ax.legend()
+            # Export plot as SVG file
+            if plot_axes == None:
+                fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
+                ax.semilogx(x_value, hist_density, 'b^-', lw=2, label='Log ISI distribution')
+
+                ax.set(xlabel='ISI (s)', ylabel='Probability density')
+                ax.set_xlim(xrange[0], xrange[1])
+                if any(yrange) < 0: print('Warning! \'yrange\' contains zero, the condition will be ingored for log scale.')
+                ax.set_ylim(yrange[0], yrange[1])
+                ax.grid(True)
+                ax.legend()
             
-            if file_label == '': output_file_plot = output_file + '.svg'
-            else: output_file_plot = output_file + '_' + file_label + '.svg'
-            fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
-            if file_label == '': output_file_info = output_file + '.txt'
-            else: output_file_info = output_file + '_' + file_label + '.txt'
-            with open(self.output_path+output_file_info, 'w') as fp_info:
-                fp_info.write('### Plot information ###\n')
-                fp_info.write('Max ISI: {}\n'.format(np.amax(IsI)))
-                fp_info.write('Min ISI: {}\n'.format(np.amin(IsI)))
-                fp_info.write('Total density by areal summation: {}\n'.format(total_density))
-                fp_info.write('\n### Plot settings ###\n')
-                fp_info.write('Bin size in log scale: {}\n'.format((bins[1]-bins[0])/bins[2]))
-                fp_info.write('Bin bounds: lower: {}, upper: {}\n'.format(math.pow(10,bins[0]), math.pow(10,bins[1])))
-                fp_info.write('Number of bins: {}'.format(bins[2]))
+                if file_label == '': output_file_plot = output_file + '.svg'
+                else: output_file_plot = output_file + '_' + file_label + '.svg'
+                fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
+                
+                if file_label == '': output_file_info = output_file + '.txt'
+                else: output_file_info = output_file + '_' + file_label + '.txt'
+                with open(self.output_path+output_file_info, 'w') as fp_info:
+                    fp_info.write('### Plot information ###\n')
+                    fp_info.write('Max ISI: {0}\nMin ISI: {1}\n'.format(np.amax(IsI), np.amin(IsI)))
+                    fp_info.write('Total density by areal summation: {0}\n'.format(total_density))
+                    fp_info.write('\n### Plot settings ###\n')
+                    fp_info.write('Bin size in log scale: {0}\nBin bounds: lower: {1}, upper: {2}\nNumber of bins: {3}'.format( (bins[1]-bins[0])/bins[2], math.pow(10,bins[0]), math.pow(10,bins[1]), bins[2] ))
+        
+            # Return plot as matplotlib.axes
+            else:
+                ax = plot_axes
+                ax.semilogx(x_value, hist_density, info_list[0]+'-', lw=2, label=info_list[1])
+                return ax
 
 
 class Compare:

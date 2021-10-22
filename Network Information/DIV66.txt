@@ -1,0 +1,13 @@
+### Statistics of Network 'DIV66 (C)' ###
+
+Connection probability: 0.015344829951571524
+
+Statistics of synaptic weights:
+Minimum weight:	-0.13861
+Maximum weight:	0.27033
+Mean (all links):	0.0028913621612796647
+S.D. (all links):	0.008887996287658852
+Mean (negative links):	-0.005927548460515496
+S.D. (negative links):	0.00374561833693429
+Mean (positive links):	0.008363710969587016
+S.D. (positive links):	0.006411179005874374

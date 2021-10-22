@@ -94,7 +94,7 @@ ___
 
 </br>
 
-### **Functions in _tool.py_**
+### **Functions in _tools.py_**
 
 _Coupling_ ( )
 - calculate

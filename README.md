@@ -113,8 +113,8 @@ _Spiking_ ( )
   - statistics of synaptic weight of a network
   - average synaptic weight
   - ratio of suppression & enhancement
-- plot
   - reformat spiking data
+- plot
   - spike raster plot
   - firing rate distribution
   - ISI distribution

@@ -16,5 +16,5 @@ All shared files
 </br>
 
 ## On How to Use the Files
-
-- [Guide/Plot & Analysis](Guide.md#analysing-network-and-their-dynamics)
+- [Guide/Simulation Code](Guide.md#network-dynaimcs-simulation)
+- [Guide/Plots & Analysis](Guide.md#analysing-network-and-their-dynamics)

@@ -1,0 +1,13 @@
+### Statistics of Network 'Random (D)' ###
+
+Connection probability: 0.015290788568756326
+
+Statistics of synaptic weights:
+Minimum weight:	-0.039341965
+Maximum weight:	0.040984031
+Mean (all links):	0.003333142545577583
+S.D. (all links):	0.00872205689801607
+Mean (negative links):	-0.007440698021515839
+S.D. (negative links):	0.005611535353324736
+Mean (positive links):	0.0074608254165460675
+S.D. (positive links):	0.005625560960642306

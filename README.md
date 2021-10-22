@@ -17,4 +17,4 @@ All shared files
 
 ## On How to Use the Files
 
-- [see Guide](Guide.md)
+- [Guide/Plot & Analysis](Guide.md#analysing-network-and-their-dynamics)

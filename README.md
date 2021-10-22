@@ -14,3 +14,7 @@ All shared files
 - https://www.dropbox.com/sh/4gpbvgporuf1p72/AADV1DfqR5BFoE_VM_g0Hy8Ca?dl=0
 
 </br>
+
+## On How to Use the Files
+
+https://github.com/likchun/Neuron-Network-Study/blob/main/GUIDE.md

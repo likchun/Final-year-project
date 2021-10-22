@@ -1,5 +1,11 @@
 ###### A Final Year Project in CUHK, Autumn 2021
 
+## Share Portal
+
+https://www.dropbox.com/s/bxs5s3tfq9zsrhk/results-data-plots-on-22-Oct.zip?dl=0
+
+</br>
+
 # Network Dynaimcs Simulation
 
 </br>

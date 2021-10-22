@@ -17,4 +17,4 @@ All shared files
 
 ## On How to Use the Files
 
-[Guide.md](GUIDE.md)
+[see Guide](Guide.md)

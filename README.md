@@ -17,5 +17,4 @@ All shared files
 
 ## On How to Use the Files
 
-[a relative link](GUIDE.md)
-https://github.com/likchun/Neuron-Network-Study/blob/main/GUIDE.md
+[Guide.md](GUIDE.md)

@@ -1,59 +1,50 @@
 from tools import Spiking
 
 
-input_folder = [
-    # 'OUT_DATA_DIV66_7500_125',
-    # 'OUT_DATA_DIV66_7500_125_seed1',
-    # 'OUT_DATA_DIV66_7500_05',
-    # 'OUT_DATA_DIV66_7500_05_seed0',
-    # 'OUT_DATA_DIV66_7500_01',
-    # 'OUT_DATA_DIV66_10000_125',
-    # 'OUT_DATA_DIV66_10000_05',
-    # 'OUT_DATA_DIV66_10000_05_seed0',
-    'OUT_DATA_DIV66_10000_025',
-    # 'OUT_DATA_DIV66_20000_125',
-    # 'OUT_DATA_DIV66_20000_05',
-    # 'OUT_DATA_DIV66_40000_125',
-    # 'OUT_DATA_DIV66_40000_05',
-    # 'OUT_DATA_DIV66_60000_125',
-    # 'OUT_DATA_DIV66_60000_05',
-    # 'OUT_DATA_DIV66_60000_01'
+input_data = [
+    {'name':'DIV66',                'firing_rate_bins':[0, 65, 500], 'ISI_bins':[0.0005,40,118], 'raster_stretch':1, 'tag':''},
+    {'name':'DIV66_INH_SUP_k1',     'firing_rate_bins':[0, 65, 500], 'ISI_bins':[0.0005,40,118], 'raster_stretch':1, 'tag':''},
+    {'name':'DIV66_INH_SUP_k075',   'firing_rate_bins':[0, 65, 500], 'ISI_bins':[0.0005,40,118], 'raster_stretch':1, 'tag':''},
+    {'name':'DIV66_INH_SUP_k05',    'firing_rate_bins':[0, 65, 500], 'ISI_bins':[0.0005,40,118], 'raster_stretch':1, 'tag':''},
+    {'name':'DIV66_INH_SUP_k025',   'firing_rate_bins':[0, 65, 500], 'ISI_bins':[0.0005,40,118], 'raster_stretch':1, 'tag':''},
+
+    # {'name':'DIV66_7500_05',    'firing_rate_bins':[0, 65, 500], 'ISI_bins':[0.0005,40,180], 'raster_stretch':1},
+    # {'name':'DIV66_7500_01',    'firing_rate_bins':[0, 65, 500], 'ISI_bins':[0.0005,40,180], 'raster_stretch':1},
+    # {'name':'DIV66_10000_125',  'firing_rate_bins':[0, 65, 655], 'ISI_bins':[0.0005,10,135], 'raster_stretch':1},
+    # {'name':'DIV66_10000_05',   'firing_rate_bins':[0, 65, 660], 'ISI_bins':[0.0005,10,175], 'raster_stretch':1},
+    # {'name':'DIV66_10000_025',  'firing_rate_bins':[0, 65, 660], 'ISI_bins':[0.0005,10,175], 'raster_stretch':1},
+    # {'name':'DIV66_10000_01',   'firing_rate_bins':[0, 65, 660], 'ISI_bins':[0.0005,10,175], 'raster_stretch':1},
+    # {'name':'DIV66_10000_005',  'firing_rate_bins':[0, 65, 660], 'ISI_bins':[0.0005,10,175], 'raster_stretch':1},
+    # {'name':'DIV66_20000_05',   'firing_rate_bins':[0, 65, 660], 'ISI_bins':[0.0005,30,180], 'raster_stretch':1.5},
+    # {'name':'DIV66_20000_125',  'firing_rate_bins':[0, 65, 660], 'ISI_bins':[0.0005,30,150], 'raster_stretch':1.5},
+    # {'name':'DIV66_40000_05',   'firing_rate_bins':[0, 65, 660], 'ISI_bins':[0.0005,40,180], 'raster_stretch':3},
+    # {'name':'DIV66_60000_125',  'firing_rate_bins':[0, 65, 655], 'ISI_bins':[0.0005,50,135], 'raster_stretch':4.5},
+    # {'name':'DIV66_60000_05',   'firing_rate_bins':[0, 65, 655], 'ISI_bins':[0.0005,50,149], 'raster_stretch':4.5},
+    # {'name':'DIV66_60000_01',   'firing_rate_bins':[0, 65, 655], 'ISI_bins':[0.0005,50,180], 'raster_stretch':4.5},
+
+    # {'name':'RANDOM_10000_05',  'firing_rate_bins':[-2, 4,  60], 'ISI_bins':[0.0005,10,110], 'show_norm':True},
 ]
 
-for each_path in input_folder:
-    s = Spiking(each_path+'\\OUT_SPIK.txt', each_path+'\\INI_CNFG', output_folder=each_path)
+for datum in input_data:
+    s = Spiking(datum['name']+'\\OUT_SPIK.txt', datum['name']+'\\INI_CNFG', output_folder=datum['name'])
     s_calc = s.calculate
     s_plot = s.plot
 
-    print('\n> Displaying details for \'{}\' <\n'.format(each_path))
+    print('\n> Generating results for \'{}\' <\n'.format(datum['name']))
 
     # s_calc.FiringRate_Stat()
     # s_calc.InterSpikeInterval_Stat()
-    s_calc.AverageFiringRate()
-    s_calc.TotalNumberOfSpikes()
-    s_calc.SpikeCountBounds()
+    # s_calc.AverageFiringRate()
+    # s_calc.TotalNumberOfSpikes()
+    # s_calc.SpikeCountBounds()
 
     # s_calc.identifyBurstingNode(output=True)
-    # s_calc.reformatSpikeData()
-    # s_plot.SpikeRaster(plot_horizontal_area_stretch=1) # 7500: 1, 20000: 1.5, 40000: 3, 60000: 4.5
+    s_calc.reformatSpikeData_noindex()
+    # s_plot.SpikeRaster(plot_horizontal_stretch=datum['raster_stretch'])
 
-    # s_plot.FiringRateDistribution(bins=[0, 65, 500], xrange=[0,10], yrange=[0, None], file_label='fit') # DIV66 7500 01
-    # s_plot.FiringRateDistribution(bins=[0, 65, 500], xrange=[0,10], yrange=[0, None], file_label='fit') # DIV66 7500 05
-    # s_plot.FiringRateDistribution(bins=[0, 65, 660], xrange=[0,10], yrange=[0, None], file_label='fit') # DIV66 10000 05
-    s_plot.FiringRateDistribution(bins=[0, 65, 660], xrange=[0,10], yrange=[0, None], file_label='fit') # DIV66 10000 025
-    # s_plot.FiringRateDistribution(bins=[0, 65, 660], xrange=[0,10], yrange=[0, None], file_label='fit') # DIV66 20000 05
-    # s_plot.FiringRateDistribution(bins=[0, 65, 660], xrange=[0,10], yrange=[0, None], file_label='fit') # DIV66 40000 05
-    # s_plot.FiringRateDistribution(bins=[0, 65, 655], xrange=[0,10], yrange=[0, None], file_label='fit') # DIV66 60000 05
-    # s_plot.FiringRateDistribution(bins=[-2,4,60], xrange=[-2,4], show_norm=True, file_label='fit')      # RANDOM 10000
+    s_plot.FiringRateDistribution(bins=datum['firing_rate_bins'], xrange=[0,10], yrange=[0, None])
+    # s_plot.FiringRateDistribution(bins=datum['firing_rate_bins'], xrange=[0,10], yrange=[0, None], show_norm=datum['show_norm'])
 
-    # s_plot.InterSpikeIntervalDistribution(bins=[0.0005,40,138], xrange=[0.0005,10], file_label='fit') # DIV66 7500 01
-    # s_plot.InterSpikeIntervalDistribution(bins=[0.0005,40,180], xrange=[0.0005,10], file_label='fit') # DIV66 7500 05
-    # s_plot.InterSpikeIntervalDistribution(bins=[0.0005,10,175], xrange=[0.0005,10], file_label='fit') # DIV66 10000 05
-    s_plot.InterSpikeIntervalDistribution(bins=[0.0005,10,175], xrange=[0.0005,10], file_label='fit') # DIV66 10000 025
-    # s_plot.InterSpikeIntervalDistribution(bins=[0.0005,30,180], xrange=[0.0005,10], file_label='fit') # DIV66 20000 05
-    # s_plot.InterSpikeIntervalDistribution(bins=[0.0005,40,180], xrange=[0.0005,10], file_label='fit') # DIV66 40000 05
-    # s_plot.InterSpikeIntervalDistribution(bins=[0.0005,50,149], xrange=[0.0005,40], file_label='fit') # DIV66 60000 05
-    # s_plot.InterSpikeIntervalDistribution(bins=[0.0005,50,172], xrange=[0.0005,40], file_label='fit') # DIV66 60000 125
-    # s_plot.InterSpikeIntervalDistribution(bins=[0.0005,10,110], xrange=[0.0005,35], file_label='fit') # RANDOM 10000
+    s_plot.InterSpikeIntervalDistribution(bins=datum['ISI_bins'], xrange=[0.0005,10], file_label=datum['tag'])
 
     print('\n------------------------------next------------------------------')

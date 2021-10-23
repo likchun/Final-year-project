@@ -120,10 +120,10 @@ int main(int argc, char *argv[])
 
     printf("[notice] Starting time: %02d:%02d:%02d.\n\n", start_dt.tm_hour, start_dt.tm_min, start_dt.tm_sec);
     printf("[info] Network: %s\n[info] T: %0.0f, dt: %f\n[info] Random number seed: %0.0f\n", input_data, tn, dt, seed_for_random);
-	if (suppress_inhibitory) { printf("\n[info] Suppress Inhibitory: YES\n[info] Suppression level: %f\n[info] Inhibitory S.D.: %f", alter_inh_k, alter_inh_sd); }
-    if (enhance_inhibitory)  { printf("\n[info] Enhance Inhibitory: YES\n[info] Enhancement level: %f\n[info] Inhibitory S.D.: %f", alter_inh_k, alter_inh_sd); }
-    if (suppress_excitatory) { printf("\n[info] Suppress Excitatory: YES\n[info] Suppression level: %f\n[info] Excitatory S.D.: %f", alter_inh_k, alter_inh_sd); }
-    if (enhance_excitatory)  { printf("\n[info] Enhance Excitatory: YES\n[info] Enhancement level: %f\n[info] Excitatory S.D.: %f", alter_inh_k, alter_inh_sd); }
+	if (suppress_inhibitory) { printf("\n[info] Suppress Inhibitory: YES\n[info] Suppression level: %f\n[info] Inhibitory S.D.: %f\n", alter_inh_k, alter_inh_sd); }
+    if (enhance_inhibitory)  { printf("\n[info] Enhance Inhibitory: YES\n[info] Enhancement level: %f\n[info] Inhibitory S.D.: %f\n", alter_inh_k, alter_inh_sd); }
+    if (suppress_excitatory) { printf("\n[info] Suppress Excitatory: YES\n[info] Suppression level: %f\n[info] Excitatory S.D.: %f\n", alter_inh_k, alter_inh_sd); }
+    if (enhance_excitatory)  { printf("\n[info] Enhance Excitatory: YES\n[info] Enhancement level: %f\n[info] Excitatory S.D.: %f\n", alter_inh_k, alter_inh_sd); }
 
 
     // Start timer

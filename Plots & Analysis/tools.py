@@ -10,14 +10,56 @@ import seaborn as sns
 
 
 class Coupling:
+    """
+    Analysis and graphings for coupling matrix.
 
-    def __init__(self, coupling_matrix, coupling_enhance_factor=1, delimiter='\t', input_folder=None, output_folder=None):
-        self.initCouplingMatrix(coupling_matrix, delimiter, input_folder, output_folder)
+    Parameters
+    ----------
+    coupling_matrix_path : str
+        Path of the input coupling matrix file, e.g., DIV66.txt, exclude input folder if `input_folder` is used.
+    coupling_enhance_factor : int or float, default: 1
+        Multiply all synaptic weights by a factor.
+    delimiter : str, default: '\\t'
+        Delimiter to the input coupling matrix file.
+    input_folder : str, default: None
+        Path of input folder.
+    output_folder : str, default: None
+        Path of output folder.
+
+    Notes
+    -----
+    Invoke object `calculate` to find basic features and properties of the coupling matrix.\n
+    Invoke object `plot` to plot graphs of basic features and properties of the coupling matrix.
+
+    Examples
+    --------
+    To start with, create a object for class `Coupling` by specifying the file path and delimiter (optional).
+    Invoke object `calculate` / `plot` to find / plot basic features and properties of the coupling matrix.
+    >>> c = Coupling('DIV66.txt', delimiter='\\t')
+    >>> c_calc = c.calculate
+    >>> c_plot = c.plot
+
+    Find the *connection probability* of the coupling matrix:
+    >>> c = Coupling('DIV66.txt', delimiter='\\t')
+    >>> c.calculate.ConnectionProbability()
+    'terminal> Connection probability: 0.015344'
+    >>> result = c.calculate.ConnectionProbability(print_console=False)
+    >>> print(result)
+    'terminal> 0.015344'
+
+    Plot the *average synaptic weight excitatory incoming links distribution* of the coupling matrix:
+    >>> c = Coupling('DIV66.txt', delimiter='\\t')
+    >>> c.plot.AverageSynapticWeight_ExcitatoryIncomingLinks()
+    """
+
+    def __init__(self, coupling_matrix_path: str, coupling_enhance_factor=1, delimiter='\t', input_folder=None, output_folder=None):
+        self.initCouplingMatrix(coupling_matrix_path, delimiter, input_folder, output_folder)
         self.Coupling = coupling_enhance_factor * self.Coupling
         self.calculate = self.Calculate(self.Coupling)
         self.plot = self.Plot(self.Coupling, self.output_path)
 
-    def initCouplingMatrix(self, coupling_matrix, delimiter, input_folder, output_folder):
+    def initCouplingMatrix(self, coupling_matrix_path, delimiter, input_folder, output_folder):
+        # Initialize coupling matrix
         this_dir = os.path.dirname(os.path.abspath(__file__))
         if input_folder == None: input_folder = ''
         else: input_folder = input_folder + '\\'
@@ -28,13 +70,17 @@ class Coupling:
         try: os.mkdir(self.output_path)
         except FileExistsError: pass
 
-        with open(input_path+coupling_matrix, 'r', newline='') as file_input:
+        with open(input_path+coupling_matrix_path, 'r', newline='') as file_input:
             reader = csv.reader(file_input, delimiter=delimiter)
             self.Coupling = np.array(list(reader)).astype('float')
 
     class Calculate:
+        """
+        Find basic features and properties of the coupling matrix.
+        """
 
         def __init__(self, Coupling):
+            # Initialize instance attributes
             self.Coupling = Coupling
             self.Nsize = np.shape(self.Coupling)[0]
             self.PositiveWeight = np.array([np.array([pos_weight for pos_weight in self.Coupling[idx][self.Coupling[idx] > 0]]) for idx in range(self.Nsize)], dtype=object)
@@ -44,17 +90,17 @@ class Coupling:
 
         def ConnectionProbability(self, print_console=True):
             """
-            Print or return the connection probability of a given network.
+            Find the connection probability.
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             print_console : bool
-                Outputs the result in the console.
+                Print result in terminal if `True`.
 
-            Return
-            ------
-            connection_probability : float
-
+            Returns
+            -------
+            float
+                Connection probability of the network.
             """
             number_of_links = len(np.argwhere(self.Coupling.flatten()))
             connection_probability = number_of_links / ( self.Nsize * (self.Nsize-1) )
@@ -64,18 +110,19 @@ class Coupling:
             
         def SynapticWeightBounds(self, print_console=True):
             """
-            Print or return the minimum and maximum synaptic weight of a given network.
+            Find the minimum and maximum synaptic weights.
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             print_console : bool
-                Outputs the result in the console.
+                Print result in terminal if `True`.
 
-            Return
-            ------
+            Returns
+            -------
             min_synaptic_weight : float
+                Minimum synaptic weight of the network.
             max_synaptic_weight : float
-
+                Maximum synaptic weight of the network.
             """
             min_synaptic_weight = np.amin(self.Coupling)
             max_synaptic_weight = np.amax(self.Coupling)
@@ -85,18 +132,19 @@ class Coupling:
 
         def SynapticWeight_Stat(self, print_console=True):
             """
-            Print or return the mean and population standard deviation of synaptic weights of a given network.
+            Find the mean and standard deviation of synaptic weights.
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             print_console : bool
-                Outputs the result in the console.
+                Print result in terminal if `True`.
 
-            Return
-            ------
+            Returns
+            -------
             synaptic_weight_mean : float
+                Mean of synaptic weight of all links in the network.
             synaptic_weight_sd : float
-
+                Population standard deviation of synaptic weight of all links in the network.
             """
             synaptic_weight_mean = np.mean(self.Coupling.flatten()[np.nonzero(self.Coupling.flatten())])
             synaptic_weight_sd = np.std(self.Coupling.flatten()[np.nonzero(self.Coupling.flatten())])
@@ -107,18 +155,19 @@ class Coupling:
 
         def PositiveSynapticWeight_Stat(self, print_console=True):
             """
-            Print or return the mean and population standard deviation of positive synaptic weights of a given network.
+            Find the mean and population standard deviation of positive synaptic weights.
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             print_console : bool
-                Outputs the result in the console.
+                Print result in terminal if `True`.
 
-            Return
-            ------
+            Returns
+            -------
             positive_weight_mean : float
+                Mean of synaptic weight of all positive links of the network.
             positive_weight_sd : float
-
+                Standard deviation of synaptic weight of all positive links in the network.
             """
             positive_weight_mean = np.mean(self.PositiveWeight_flatten)
             positive_weight_sd = np.std(self.PositiveWeight_flatten)
@@ -129,18 +178,19 @@ class Coupling:
 
         def NegativeSynapticWeight_Stat(self, print_console=True):
             """
-            Print or return the mean and population standard deviation of negative synaptic weights of a given network.
+            Find the mean and population standard deviation of negative synaptic weights.
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             print_console : bool
-                Outputs the result in the console.
+                Print result in terminal if `True`.
 
-            Return
-            ------
+            Returns
+            -------
             negative_weight_mean : float
+                Mean of synaptic weight of all negative links of the network.
             negative_weight_sd : float
-
+                Standard deviation of synaptic weight of all negative links in the network.
             """
             negative_weight_mean = np.mean(self.NegativeWeight_flatten)
             negative_weight_sd = np.std(self.NegativeWeight_flatten)
@@ -151,23 +201,19 @@ class Coupling:
 
         def AverageSynapticWeight_ExcitatoryIncomingLinks(self, idx, print_console=True):
             """
-            Print or return the average synaptic weight of excitatory incoming links of a specific node in a given network.
+            Find the average synaptic weight of excitatory incoming links of a specific node, s+_in(i).
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             idx : int
-                The index of node to be calculated. Index starts from 1.
+                The index of node to be calculated, starts from 1.
             print_console : bool
-                Outputs the result in the console.
+                Print result in terminal if `True`.
 
-            Return
-            ------
-            avg_syn_weight_exc_in : float
-
-            Notes
-            -----
-            Denoted by s+_in(i).
-
+            Returns
+            -------
+            float
+                Average synaptic weight of excitatory incoming links of node `idx`.
             """
             # index of node starts from 1, end with 4095
             # s+_in(i)
@@ -178,23 +224,19 @@ class Coupling:
 
         def AverageSynapticWeight_InhibitoryIncomingLinks(self, idx, print_console=True):
             """
-            Print or return the average synaptic weight of inhibitory incoming links of a specific node in a given network.
+            Find the average synaptic weight of inhibitory incoming links of a specific node, s-_in(i).
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             idx : int
-                The index of node to be calculated. Index starts from 1.
+                The index of node to be calculated, starts from 1.
             print_console : bool
-                Outputs the result in the console.
+                Print result in terminal if `True`.
 
-            Return
-            ------
-            avg_syn_weight_inh_in : float
-
-            Notes
-            -----
-            Denoted by s-_in(i).
-
+            Returns
+            -------
+            float
+                Average synaptic weight of inhibitory incoming links of node `idx`.
             """
             # s-_in(i)
             avg_syn_weight_inh_in = np.sum(self.NegativeWeight[idx-1]) / len(self.NegativeWeight[idx-1])
@@ -204,23 +246,19 @@ class Coupling:
         
         def AverageSynapticWeight_OutgoingLinks(self, idx, print_console=True):
             """
-            Print or return the average synaptic weight of outgoing links of a specific node in a given network.
+            Find the average synaptic weight of outgoing links of a specific node, s_out(i).
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             idx : int
-                The index of node to be calculated. Index starts from 1.
+                The index of node to be calculated, starts from 1.
             print_console : bool
-                Outputs the result in the console.
+                Print result in terminal if `True`.
 
-            Return
-            ------
-            avg_syn_weight_out : float
-
-            Notes
-            -----
-            Denoted by s_out(i).
-
+            Returns
+            -------
+            float
+                Average synaptic weight of outgoing links of node `idx`.
             """
             # s_out(i)
             avg_syn_weight_out = np.sum(self.Coupling.transpose()[idx-1]) / len(np.argwhere(self.Coupling.transpose()[idx-1]))
@@ -230,25 +268,29 @@ class Coupling:
 
         def RatioOfSuppression(self, suppressed_node_type: str, suppressed_values: list):
             """
-            Return the ratio of suppression when synaptic weights of a given network are suppressed.
+            Calculate the ratio of suppression for each suppressed value.
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             suppressed_node_type : {'inhibitory', 'excitatory'}
-                The node type (inhibitory / excitatory) to be suppressed.
-                If suppressed node type = Inhibitory, the suppressed value is added to the synaptic weight of every negative links, but not greater than zero.
-                If suppressed node type = Excitatory, the suppressed value is subtracted from the synaptic weight of every positive links, but not smaller than zero.
+                The node type, inhibitory or excitatory, to be suppressed.
             suppressed_values : list of float
-                Suppressed value = suppression level k * S.D. of the suppressed node type.
+                A list of suppressed value.
 
-            Return
-            ------
-            ratio_of_suppression : float
-
+            Returns
+            -------
+            list of float
+                A list of suppression ratios.
+            
             Notes
             -----
-            None.
+            Suppressed value = (suppression level k) * (S.D. of the suppressed node type).
 
+            Suppressing *inhibitory*:
+                suppressed value added to the synaptic weight of every *negative* links, which cannot be greater than zero.
+
+            Suppressing *excitatory*:
+                suppressed value subtracted from the synaptic weight of every *positive* links, which cannot be smaller than zero.
             """
             avg_change_weight = np.zeros(len(suppressed_values))
 
@@ -260,7 +302,7 @@ class Coupling:
                     NewWeight[count][NewWeight[count] > 0] = 0
                     avg_change_weight[count] = np.mean(np.array(NewWeight[count]) - self.NegativeWeight_flatten)
 
-            if suppressed_node_type == 'excitatory':
+            elif suppressed_node_type == 'excitatory':
                 avg_magnitude_weight = np.mean(self.PositiveWeight_flatten)
                 NewWeight = np.zeros((len(suppressed_values), len(self.PositiveWeight_flatten)))
                 for count in range(0, len(suppressed_values)):
@@ -268,30 +310,37 @@ class Coupling:
                     NewWeight[count][NewWeight[count] < 0] = 0
                     avg_change_weight[count] = np.mean(np.array(NewWeight[count]) - self.PositiveWeight_flatten)
             
+            else:
+                print('Error. the valid input for argument \'suppressed_node_type\' is either \'inhibitory\' or \'excitatory\'.')
+            
             ratio_of_suppression = np.abs(avg_change_weight) / np.abs(avg_magnitude_weight)
             return ratio_of_suppression
 
         def RatioOfEnhancement(self, enhanced_node_type: str, enhanced_values: list):
             """
-            Return the ratio of enhancement when synaptic weights of a given network are enhanced.
+            Calculate the ratio of enhancement for each enhanced value.
 
-            Prameters
-            ---------
+            Parameters
+            ----------
             enhanced_node_type : {'inhibitory', 'excitatory'}
-                The node type (inhibitory / excitatory) to be enhanced.
-                If enhanced node type = Inhibitory, the enhanced value is subtracted from the synaptic weight of every negative links.
-                If enhanced node type = Excitatory, the enhanced value is added to the synaptic weight of every positive links.
+                The node type, inhibitory or excitatory, to be enhanced.
             enhanced_values : list of float
-                Enhanced value = enhancement level k * S.D. of the enhanced node type.
+                A list of enhanced value.
 
-            Return
-            ------
-            ratio_of_enhancement : float
-
+            Returns
+            -------
+            list of float
+                A list of enhancement ratios.
+            
             Notes
             -----
-            None.
+            Enhanced value = (enhancement level k) * (S.D. of the enhanced node type).
 
+            Enhancing *inhibitory*:
+                enhanced value subtracted from the synaptic weight of every *negative* links.
+
+            Enhancing *excitatory*:
+                enhanced value added to the synaptic weight of every *positive* links.
             """
             avg_change_weight = np.full(len(enhanced_values), enhanced_values)
             if enhanced_node_type == 'inhibitory': avg_magnitude_weight = np.mean(self.NegativeWeight_flatten)
@@ -300,6 +349,9 @@ class Coupling:
             return ratio_of_enhancement
 
     class Plot:
+        """
+        Plot graphs of basic features and properties of the coupling matrix.
+        """
 
         def __init__(self, Coupling, output_path):
             self.Coupling = Coupling
@@ -369,13 +421,58 @@ class Coupling:
 
 
 class Spiking:
+    """
+    Analysis and graphings for spiking data.
 
-    def __init__(self, spiking_data, simulation_config, delimiter='\t', input_folder=None, output_folder=None):
-        self.initSpikeData(spiking_data, simulation_config, delimiter, input_folder, output_folder)
+    Parameters
+    ----------
+    spiking_data_path : str
+        Path of the input spiking data file, OUT_SPIK.txt, exclude input folder if `input_folder` is used.
+    config_path : str
+        Path of the input spiking data config file, INI_CNFG, exclude input folder if `input_folder` is used.
+    delimiter : str, default: '\\t'
+        Delimiter to the input spiking data file.
+    input_folder : str, default: None
+        Path of input folder.
+    output_folder : str, default: None
+        Path of output folder.
+
+    Notes
+    -----
+    Invoke object `calculate` to find basic features and properties of the spiking data.\n
+    Invoke object `plot` to plot graphs of basic features and properties of the spiking data.
+
+    Examples
+    --------
+    To start with, create a object for class `Spiking` by specifying the spiking data file path and the configuration file path.
+    Invoke object `calculate` / `plot` to find / plot basic features and properties of the spiking data.
+    >>> s = Spiking('INPUT_FOLDER\\\OUT_SPIK.txt, INPUT_FOLDER\\\INI_CNFG')
+    >>> s_calc = s.calculate
+    >>> s_plot = s.plot
+
+    Find the *average firing rate* of the neuron dynamics from spiking data:
+    >>> s = Spiking('INPUT_FOLDER\\\OUT_SPIK.txt, INPUT_FOLDER\\\INI_CNFG')
+    >>> s.calculate.AverageFiringRate()
+    'terminal> Average firing rate: 2.1246'
+    >>> result = s.calculate.AverageFiringRate(print_console=False)
+    >>> print(result)
+    'terminal> 2.1246'
+
+    Reformat spiking data, reformat spike times from *ms* to *timestep*:
+    >>> s = Spiking('INPUT_FOLDER\\\OUT_SPIK.txt, INPUT_FOLDER\\\INI_CNFG')
+    >>> s.calculate.reformatSpikeData_timesteps()
+
+    Plot the *inter-spike interval distribution* of the neuron dynamics from spiking data:
+    >>> s = Spiking('INPUT_FOLDER\\\OUT_SPIK.txt, INPUT_FOLDER\\\INI_CNFG')
+    >>> s.plot.InterSpikeIntervalDistribution(bins=[0.0005,50,180], xrange=[0.0005,10])
+    """
+
+    def __init__(self, spiking_data_path, config_path, delimiter='\t', input_folder=None, output_folder=None):
+        self.initSpikeData(spiking_data_path, config_path, delimiter, input_folder, output_folder)
         self.calculate = self.Calculate(self.SpikeCount, self.SpikeTimes, self.Config, self.output_path)
         self.plot = self.Plot(self.SpikeCount, self.SpikeTimes, self.Config, self.output_path)
 
-    def initSpikeData(self, spiking_data, simulation_config, delimiter, input_folder, output_folder):
+    def initSpikeData(self, spiking_data_path, config_path, delimiter, input_folder, output_folder):
         this_dir = os.path.dirname(os.path.abspath(__file__))
         if input_folder == None: input_folder = ''
         else: input_folder = input_folder + '\\'
@@ -386,7 +483,7 @@ class Spiking:
         try: os.mkdir(self.output_path)
         except FileExistsError: pass
 
-        with open(input_path+simulation_config, 'r') as file_config:
+        with open(input_path+config_path, 'r') as file_config:
             reader = csv.reader(file_config, delimiter='\t')
             self.Config = np.array(list(reader), dtype=object)
         
@@ -394,7 +491,7 @@ class Spiking:
         self.SpikeTimes = np.empty((Nsize), dtype=object)
         self.SpikeCount = np.zeros(Nsize)
 
-        with open(input_path+spiking_data, 'r') as file_spike:
+        with open(input_path+spiking_data_path, 'r') as file_spike:
             reader = csv.reader(file_spike, delimiter=delimiter)
             counter = 0
             for row in reader:
@@ -405,14 +502,16 @@ class Spiking:
 
 
     class Calculate:
+        """
+        Find basic features and properties of the spiking data.
+        """
 
         def __init__(self, SpikeCount, SpikeTimes, Config, output_path):
             self.SpikeCount = SpikeCount
             self.SpikeTimes = SpikeTimes
-            self.Config = Config
-            # self.Config[0][0] = N
-            # self.Config[0][1] = dt
-            # self.Config[0][2] = tn
+            self.Nsize = int(Config[0][0])
+            self.dt = float(Config[0][1])
+            self.Tn = float(Config[0][2])
             self.output_path = output_path
 
         def SpikeCountBounds(self, console_print=True):
@@ -431,13 +530,13 @@ class Spiking:
 
         def AverageFiringRate(self, console_print=True):
             average_spike_count = np.mean(self.SpikeCount)
-            average_firing_rate = average_spike_count / float(self.Config[0][2]) * 1000
+            average_firing_rate = average_spike_count / float(self.Tn) * 1000
             if console_print == True:
                 print('Average firing rate: {}'.format(average_firing_rate))
             return average_firing_rate
 
         def FiringRate_Stat(self, console_print=True):
-            FiringRate = self.SpikeCount / float(self.Config[0][2]) * 1000
+            FiringRate = self.SpikeCount / float(self.Tn) * 1000
             log_mean = np.mean(FiringRate.flatten())
             log_sd = np.std(FiringRate.flatten())
             if console_print == True:
@@ -446,11 +545,9 @@ class Spiking:
             return log_mean, log_sd
 
         def InterSpikeInterval_Stat(self, console_print=True):
-            IsI = np.empty(self.SpikeTimes.shape[0], dtype=object)
-            count = 0
-            for row in self.SpikeTimes:
-                IsI[count] = np.diff(row)
-                count += 1
+            IsI = np.empty(self.Nsize, dtype=object)
+            for idx in range(len(self.SpikeTimes)):
+                IsI[idx] = np.diff(self.SpikeTimes[idx])
             IsI = np.log10(np.concatenate([item for item in IsI.flatten()], 0) / 1000)
             IsI_log_mean = np.mean(IsI)
             IsI_log_sd = np.std(IsI)
@@ -459,64 +556,112 @@ class Spiking:
                 print('SD of LOG Inter-spike Interval: {}'.format(IsI_log_sd))
             return IsI_log_mean, IsI_log_sd
 
-        def identifyBurstingNode(self, output=False, output_file='Bursting_Nodes.txt'):
+        def identifyBurstingNode(self, output=False, file_name='Bursting_Nodes.txt'):
             BurstingNode = []
-            IsI = np.empty(self.SpikeTimes.shape[0], dtype=object)
-            count = 0
-            for row in self.SpikeTimes:
-                IsI[count] = np.diff(row)
-                count += 1
-            for idx in range(int(self.Config[0][0])):
+            IsI = np.empty(self.Nsize, dtype=object)
+            for idx in range(len(self.SpikeTimes)):
+                IsI[idx] = np.diff(self.SpikeTimes[idx])
+            for idx in range(self.Nsize):
                 if len(IsI[idx]) != 0 and len(IsI[idx][IsI[idx] < 10]) / len(IsI[idx]) > 0.5:
                     BurstingNode.append(idx)
             if output == True:
-                with open(self.output_path+output_file, 'w') as file_output:
+                with open(self.output_path+file_name, 'w') as file_output:
                     for idx in BurstingNode:
                         file_output.write('{}\n'.format(idx))
             return BurstingNode
 
-        def reformatSpikeData(self, output_file='OUT_SPIK_reformatted.txt'):
-            with open(self.output_path+output_file, 'w') as file_output:
-                for idx in range(int(self.Config[0][0])):
+        def reformatSpikeData_timesteps(self, file_name='OUT_SPIK_timesteps.txt'):
+            """
+            Reformat the data from spiking timestamp file, OUT_SPIK.txt.
+
+            Remove index column and record timestamps *t*1, *t*2, ..., *tn* in simulation timesteps.
+
+            Reformat as\:
+            - N rows correspond to N spiking data for N nodes
+            - Column 1: the number of spikes *n(i)* of the corresponding node *i*
+            - Column 2 and onwards: *n(i)* timestamps *t*1, *t*2, ..., *tn* **(in timestep)** at which the spikes occur for that node
+
+            Parameters
+            ----------
+            file_name : str, default: 'OUT_SPIK_reformatted.txt'
+                Defines the output file name.
+
+            Notes
+            -----
+            Raw data format\:
+            - N rows correspond to N spiking data for N nodes
+            - Column 1: the index of node *i*. (*i* runs from 1 to N)
+            - Column 2: the number of spikes *n(i)* of the corresponding node *i*
+            - Column 3 and onwards: *n(i)* timestamps *t*1, *t*2, ..., *tn* **(in ms)** at which the spikes occur for that node
+            """
+            with open(self.output_path+file_name, 'w') as file_output:
+                for idx in range(self.Nsize):
                     file_output.write('{:.0f}'.format(self.SpikeCount[idx]))
                     for timestamp in self.SpikeTimes[idx]:
-                        file_output.write('\t{:.0f}'.format(timestamp/float(self.Config[0][1])))
+                        file_output.write('\t{:.0f}'.format(timestamp/float(self.dt)))
+                    file_output.write('\n')
+        
+        def reformatSpikeData_noindex(self, file_name='OUT_SPIK_noindex.txt'):
+            """
+            Reformat the data from spiking timestamp file, OUT_SPIK.txt.
+
+            Remove index column.
+
+            Reformat as\:
+            - N rows correspond to N spiking data for N nodes
+            - Column 1: the number of spikes *n(i)* of the corresponding node *i*
+            - Column 2 and onwards: *n(i)* timestamps *t*1, *t*2, ..., *tn* **(in ms)** at which the spikes occur for that node
+
+            Parameters
+            ----------
+            file_name : str, default: 'OUT_SPIK_reformatted.txt'
+                Defines the output file name.
+
+            Notes
+            -----
+            Raw data format\:
+            - N rows correspond to N spiking data for N nodes
+            - Column 1: the index of node *i*. (*i* runs from 1 to N)
+            - Column 2: the number of spikes *n(i)* of the corresponding node *i*
+            - Column 3 and onwards: *n(i)* timestamps *t*1, *t*2, ..., *tn* **(in ms)** at which the spikes occur for that node
+            """
+            with open(self.output_path+file_name, 'w') as file_output:
+                for idx in range(self.Nsize):
+                    file_output.write('{:.0f}'.format(self.SpikeCount[idx]))
+                    for timestamp in self.SpikeTimes[idx]:
+                        file_output.write('\t{:.2f}'.format(timestamp))
                     file_output.write('\n')
 
 
     class Plot:
+        """
+        Plot graphs of basic features and properties of the spiking data.
+        """
 
         def __init__(self, SpikeCount, SpikeTimes, Config, output_path):
             self.SpikeCount = SpikeCount
             self.SpikeTimes = SpikeTimes
-            self.Config = Config
-            # self.Config[0][0] = N
-            # self.Config[0][1] = dt
-            # self.Config[0][2] = tn
-            self.Nsize = int(self.Config[0][0])
+            self.Nsize = int(Config[0][0])
+            self.dt = float(Config[0][1])
+            self.Tn = float(Config[0][2])
             self.output_path = output_path
 
-        def SpikeRaster(self, plot_horizontal_stretch=1, output_file='Spiking_Raster_Plot.png', file_label=''):
+        def SpikeRaster(self, plot_horizontal_stretch=1, file_name='Spiking_Raster_Plot', file_label=''):
             """
-            Plot a Raster Graph of Spiking Activity of a given network. Then export a PNG file.
+            Plot a raster graph of neuron spiking activity.
 
             Parameters
             ----------
             plot_horizontal_stretch : float or int
                 Stretches the plot horizontally by the `plot_horizontal_stretch` factor. Useful for plotting raster graphs for simulations with large simulation duration T.
-            output_file : str
-                Defines the output file name.
+            file_name : str
+                Defines the output file name. Default: Spiking_Raster_Plot.svg.
             file_label : str
                 Appends a label / tag at the end of the file name.
 
-            Return
-            ------
-            None.
-
             Notes
             -----
-            None.
-
+            Export a PNG file by default.
             """
             fig, ax = plt.subplots(figsize=(9*plot_horizontal_stretch, 6), dpi=250)
             count = 0
@@ -524,18 +669,18 @@ class Spiking:
                 count += 1
                 ax.scatter(each_node, np.full(np.size(each_node), count), s=0.5, c='black')
             ax.set(xlabel='Time (s)', ylabel='Node index')
-            ax.set_xlim(0, float(self.Config[0][2])/1000)
+            ax.set_xlim(0, float(self.Tn)/1000)
             start_node, end_node = 0, self.Nsize
             ax.set_ylim(start_node-2, end_node+1)
             ax.grid(True)
 
-            if file_label == '': output_file_plot = output_file + '.png'
-            else: output_file_plot = output_file + '_' + file_label + '.png'
+            if file_label == '': output_file_plot = file_name + '.png'
+            else: output_file_plot = file_name + '_' + file_label + '.png'
             fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
         
-        def FiringRateDistribution(self, bins=[0, 80, 800], xrange=[0,10], yrange=[0,None], show_norm=False, output_file='Firing_Rate_Distribution', file_label='', plot_axes=None, info_list=[]):
+        def FiringRateDistribution(self, bins=[0, 80, 800], xrange=[0,10], yrange=[0,None], show_norm=False, file_name='Firing_Rate_Distribution', file_label='', plot_axes=None, info_list=[]):
             """
-            Plot a Distribution of Firing Rate of a given network. Then export a SVG file or return an `~matplotlib.axes.Axes`.
+            Plot a distribution graph of neuron firing rate.
 
             Parameters
             ----------
@@ -547,8 +692,8 @@ class Spiking:
                 Defines the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit.
             show_norm : bool
                 Displays a Gaussian distribution curve with mean and S.D. extracted from input data.
-            output_file : str
-                Defines the output file name.
+            file_name : str
+                Defines the output file name. Default: Firing_Rate_Distribution.svg.
             file_label : str
                 Appends a label / tag at the end of the file name.
             plot_axes
@@ -556,18 +701,18 @@ class Spiking:
             info_list : list
                 Specifies the style, legend of the current plot, in the following format: `[line style, legend]`.
             
-            Return
-            ------
-            ~matplotlib.axes.Axes
-                Return `plot_axes`.
+            Returns
+            -------
+            `matplotlib.axes.Axes`
+                A matplotlib axes returned.
 
             Notes
             -----
-            When exporting a SVG file, an TXT file with the same name containing details of firing rate and bin size will also be exported.
+            Export a SVG file by default.\n
+            When exporting a SVG file, an TXT file with the same name containing details of firing rate and bin size will also be exported.\n
             `show_norm` and file output are disabled when `plot_axes` takes an matplotlib axes as an argument.
-
             """
-            FiringRate = self.SpikeCount / float(self.Config[0][2]) * 1000
+            FiringRate = self.SpikeCount / float(self.Tn) * 1000
 
             if np.amax(FiringRate) > bins[1]: print('Warning! Maximum of Firing Rate exceeds upper bound of bins range. Max Firing Rate: {}; Max bins range: {}'.format(np.amax(FiringRate), bins[1]))
             if np.amin(FiringRate) < bins[0]: print('Warning! Minimum of Firing Rate subceeds lower bound of bins range. Min Firing Rate: {}; Min bins range: {}'.format(np.amin(FiringRate), bins[0]))
@@ -578,7 +723,7 @@ class Spiking:
             # Export plot as SVG file
             if plot_axes == None:
                 fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-                ax.plot(x_value, hist_density, 'b^-', lw=2, label='Firing rate distribution')
+                ax.plot(x_value, hist_density, 'b^-', lw=2, label='Firing rate distribution\n------------------------------\nT: {:.7}, dt: {:.5}\nmin firing rate: {:.5}, max: {:.5}\n------------------------------\nbin size: {:.5}\nbins range: ({:.5}, {:.5})\nnumber of bins: {:d}'.format( float(self.Tn), float(self.dt), np.amin(FiringRate), np.amax(FiringRate), float((bins[1]-bins[0])/bins[2]), float(bins[0]), float(bins[1]), int(bins[2]) ))
 
                 if show_norm == True:
                     mu = np.mean(FiringRate.flatten()); sigma = np.std(FiringRate.flatten())
@@ -590,12 +735,12 @@ class Spiking:
                 ax.grid(True)
                 ax.legend()
 
-                if file_label == '': output_file_plot = output_file + '.svg'
-                else: output_file_plot = output_file + '_' + file_label + '.svg'
+                if file_label == '': output_file_plot = file_name + '.svg'
+                else: output_file_plot = file_name + '_' + file_label + '.svg'
                 fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
 
-                if file_label == '': output_file_info = output_file + '.txt'
-                else: output_file_info = output_file + '_' + file_label + '.txt'
+                if file_label == '': output_file_info = file_name + '.txt'
+                else: output_file_info = file_name + '_' + file_label + '.txt'
                 with open(self.output_path+output_file_info, 'w') as fp_info:
                     fp_info.write('### Plot information ###\n')
                     fp_info.write('Max firing rate: {0}\nMin firing rate: {1}\n'.format(np.amax(FiringRate), np.amin(FiringRate)))
@@ -610,9 +755,9 @@ class Spiking:
                 ax.plot(x_value, hist_density, info_list[0]+'-', lw=2, label=info_list[1])
                 return ax
 
-        def InterSpikeIntervalDistribution(self, bins=[0.0005,50,180], xrange=[0.0005,10], yrange=[0,None], output_file='Interspike_Interval_Distribution', file_label='', plot_axes=None, info_list=[]):
+        def InterSpikeIntervalDistribution(self, bins=[0.0005,50,180], xrange=[0.0005,10], yrange=[0,None], file_name='Interspike_Interval_Distribution', file_label='', plot_axes=None, info_list=[]):
             """
-            Plot a Distribution of Inter-spike Interval of a given network. Then export a SVG file or return an `~matplotlib.axes.Axes`.
+            Plot a distribution graph of inter-spike interval.
 
             Parameters
             ----------
@@ -622,10 +767,8 @@ class Spiking:
                 Defines the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
             yrange : list
                 Defines the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit. If \'yrange\' contains zero, the condition will be ingored for log scale.
-            show_norm : bool
-                Displays a Gaussian distribution curve with mean and S.D. extracted from input data.
-            output_file : str
-                Defines the output file name.
+            file_name : str
+                Defines the output file name. Default: Interspike_Interval_Distribution.svg.
             file_label : str
                 Appends a label / tag at the end of the file name.
             plot_axes
@@ -633,19 +776,19 @@ class Spiking:
             info_list : list
                 Specifies the style, legend of the current plot, in the following format: `[line style, legend]`.
             
-            Return
-            ------
-            ~matplotlib.axes.Axes
-                Return `plot_axes`.
+            Returns
+            -------
+            `matplotlib.axes.Axes`
+                A matplotlib axes returned.
 
             Notes
             -----
-            When exporting a SVG file, an TXT file with the same name containing details of firing rate and bin size will also be exported.
+            Export a SVG file by default.\n
+            When exporting a SVG file, an TXT file with the same name containing details of firing rate and bin size will also be exported.\n
             `show_norm` and file output are disabled when `plot_axes` takes an matplotlib axes as an argument.
-
             """
-            IsI = np.empty(self.SpikeTimes.shape[0], dtype=object)
-            for count in range(len(self.SpikeTimes)):
+            IsI = np.empty(self.Nsize, dtype=object)
+            for count in range(self.Nsize):
                 try: IsI[count] = np.array(np.diff(self.SpikeTimes[count]), dtype=float)
                 except ValueError: IsI[count] = np.diff(np.array([0])); print('Value error.')
             IsI = np.concatenate([item for item in IsI.flatten()], 0) / 1000
@@ -662,7 +805,7 @@ class Spiking:
             # Export plot as SVG file
             if plot_axes == None:
                 fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-                ax.semilogx(x_value, hist_density, 'b^-', lw=2, label='Log ISI distribution')
+                ax.semilogx(x_value, hist_density, 'b^-', lw=2, label='Log ISI distribution\n------------------------------\nT: {:.7}, dt: {:.5}\nmin ISI: {:.5}, max: {:.5}\n------------------------------\nbin size (log scale): {:.5}\nbins range: ({:.5}, {:.5})\nnumber of bins: {:d}'.format( float(self.Tn), float(self.dt), np.amin(IsI), np.amax(IsI), float((bins[1]-bins[0])/bins[2]), float(math.pow(10,bins[0])), float(math.pow(10,bins[1])), int(bins[2]) ))
 
                 ax.set(xlabel='ISI (s)', ylabel='Probability density')
                 ax.set_xlim(xrange[0], xrange[1])
@@ -671,17 +814,17 @@ class Spiking:
                 ax.grid(True)
                 ax.legend()
             
-                if file_label == '': output_file_plot = output_file + '.svg'
-                else: output_file_plot = output_file + '_' + file_label + '.svg'
+                if file_label == '': output_file_plot = file_name + '.svg'
+                else: output_file_plot = file_name + '_' + file_label + '.svg'
                 fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
                 
-                if file_label == '': output_file_info = output_file + '.txt'
-                else: output_file_info = output_file + '_' + file_label + '.txt'
+                if file_label == '': output_file_info = file_name + '.txt'
+                else: output_file_info = file_name + '_' + file_label + '.txt'
                 with open(self.output_path+output_file_info, 'w') as fp_info:
-                    fp_info.write('### Plot information ###\n')
+                    fp_info.write('# Plot information #\n')
                     fp_info.write('Max ISI: {0}\nMin ISI: {1}\n'.format(np.amax(IsI), np.amin(IsI)))
                     fp_info.write('Total density by areal summation: {0}\n'.format(total_density))
-                    fp_info.write('\n### Plot settings ###\n')
+                    fp_info.write('\n# Plot settings #\n')
                     fp_info.write('Bin size in log scale: {0}\nBin bounds: lower: {1}, upper: {2}\nNumber of bins: {3}'.format( (bins[1]-bins[0])/bins[2], math.pow(10,bins[0]), math.pow(10,bins[1]), bins[2] ))
         
             # Return plot as matplotlib.axes
@@ -692,313 +835,172 @@ class Spiking:
 
 
 class Compare:
+    """
+    Compare spiking data from different simulations.
 
-    def __init__(self, spiking_data: list, data_info: list, simulation_config: str, delimiter='\t', input_folder=None, output_folder=None, coupling=None, coupling_enhance_factor=1, coupling_delimiter='\t', simulataion_duration_override=[]):
-        self.initSpikeData(spiking_data, simulation_config, delimiter, input_folder, output_folder)
-        if len(simulataion_duration_override) == 0: FiringRate = self.SpikeCount / float(self.Config[0][2]) * 1000
-        else:
-            # simulation duration override: used when comparing data with diffrent simulation duration Tn
-            FiringRate = self.SpikeCount
-            for count in range(len(simulataion_duration_override)):
-                FiringRate[count] = FiringRate[count] / float(simulataion_duration_override[count]) * 1000
-        ChangeInFiringRate = np.zeros((len(FiringRate)-1, int(self.Config[0][0])))
-        for count in range(1, len(FiringRate)):
-            ChangeInFiringRate[count-1] = FiringRate[count] - FiringRate[0]
-        self.calculate = self.Calculate(ChangeInFiringRate, self.Config, data_info, self.output_path, spiking_data, simulation_config)
-        self.plot = self.Plot(self.SpikeTimes, FiringRate, ChangeInFiringRate, self.Config, data_info, self.output_path, spiking_data, simulation_config, coupling, coupling_enhance_factor, coupling_delimiter)
+    Especially, methods like Plot.ChangeInFiringRateDistribution() can plot the changes in firing rate for neuron dynamics from altered networks.
 
-    def initSpikeData(self, spiking_data, simulation_config, delimiter, input_folder, output_folder):
+    Parameters
+    ----------
+    original_spiking_data_path : str
+        Path of the original spiking data file, OUT_SPIK.txt, exclude input folder if `input_folder` is used.
+    original_config_path : str
+        Path of the original spiking data config file, OUT_SPIK.txt, exclude input folder if `input_folder` is used.
+    altered_spiking_data_path : list
+        Path of the altered spiking data file, OUT_SPIK.txt, exclude input folder if `input_folder` is used.
+    altered_config_path : list
+        Path of the altered spiking data config file, OUT_SPIK.txt, exclude input folder if `input_folder` is used.
+    delimiter : str, default: '\\t'
+        Delimiter to the input spiking data file.
+    input_folder : str, default: None
+        Path of input folder.
+    output_folder : str, default: None
+        Path of output folder.
+
+    Notes
+    -----
+    Invoke object `plot` to plot graphs to compare spiking data.
+
+    Examples
+    --------
+    To start with, create a object for class `Compare` by specifying the spiking data file paths and the configuration file paths for both the original and altered networks.
+    Invoke object `plot` to plot the comparison.
+    >>> original_spiking_data_path = 'DIV66\\\OUT_SPIK.txt'
+    >>> original_config_path = 'DIV66\\\INI_CNFG'
+    >>> # a list of spiking data from networks with inhibitory weights suppressed
+    >>> altered_spiking_data_path = ['DIV66_INH_SUP_k05\\\OUT_SPIK.txt', 'DIV66_INH_SUP_k1\\\OUT_SPIK.txt']
+    >>> altered_config_path = ['DIV66_INH_SUP_k05\\\INI_CNFG', 'DIV66_INH_SUP_k1\\\INI_CNFG']
+    >>> sc = Compare(original_spiking_data_path, original_config_path, altered_spiking_data_path, altered_config_path)
+    >>> sc_plot = sc.plot
+
+    Plot the *change in firing rate distribution* of the neuron dynamics from spiking data:
+    >>> sc.plot.ChangeInFiringRateDistribution(bins=[-3,12,125], label_list=['k = 0.5','k = 1'])
+    """
+
+    def __init__(self, original_spiking_data_path: str, original_config_path: str, altered_spiking_data_path: list, altered_config_path: list, delimiter='\t', input_folder=None, output_folder=None):
+        spiking_data_path = [original_spiking_data_path] + altered_spiking_data_path
+        config_path = [original_config_path] + altered_config_path
+        SpikeCount, SpikeTimes, Config, number_of_files, output_path = self.initSpikeData(spiking_data_path, config_path, delimiter, input_folder, output_folder)
+        ChangeInFiringRate = self.initChangeInFiringRate(SpikeCount, Config, number_of_files)
+        self.plot = self.Plot(ChangeInFiringRate, Config, number_of_files, output_path)
+
+    def initSpikeData(self, spiking_data_path, config_path, delimiter, input_folder, output_folder):
         this_dir = os.path.dirname(os.path.abspath(__file__))
         if input_folder == None: input_folder = ''
         else: input_folder = input_folder + '\\'
         input_path = this_dir + '\\' + input_folder
         if output_folder == None: output_folder = ''
         else: output_folder = output_folder + '\\'
-        self.output_path = this_dir + '\\' + output_folder
-        try: os.mkdir(self.output_path)
+        output_path = this_dir + '\\' + output_folder
+        try: os.mkdir(output_path)
         except FileExistsError: pass
-        with open(input_path+simulation_config, 'r') as file_config:
-            reader = csv.reader(file_config, delimiter=delimiter)
-            self.Config = np.array(list(reader), dtype=object)
-        Nsize = int(self.Config[0][0])
-        self.SpikeTimes = [None] * len(spiking_data)
-        self.SpikeCount = [None] * len(spiking_data)
-        file_spike = [None] * len(spiking_data)
-        count_file = 0
-        for file_path in spiking_data:
-            self.SpikeTimes[count_file] = np.empty((Nsize), dtype=object)
-            self.SpikeCount[count_file] = np.zeros(Nsize)
-            with open(input_path+file_path, 'r') as file_spike:
+
+        number_of_files = len(spiking_data_path)
+        Config = []
+
+        for each_config in config_path:
+            with open(input_path+each_config, 'r') as file_config:
+                reader = csv.reader(file_config, delimiter='\t')
+                this_Config = np.array(list(reader), dtype=object)
+                Config.append(np.array(this_Config[0], dtype=float))
+                # Read N, dt, T from each data file
+                # # [0]: N, [1]: dt, [2]: T
+                # # e.g., self.Config[2][1] --> dt of the simulation in the 2nd data file
+        
+        Nsize = int(Config[0][0])
+
+        SpikeTimes = [None] * number_of_files
+        SpikeCount = [None] * number_of_files
+
+        for count_file in range(number_of_files):
+            SpikeTimes[count_file] = np.empty((Nsize), dtype=object)
+            SpikeCount[count_file] = np.zeros(Nsize)
+            with open(input_path+spiking_data_path[count_file], 'r') as file_spike:
                 reader = csv.reader(file_spike, delimiter=delimiter)
                 count_node = 0
                 for row in reader:
-                    self.SpikeTimes[count_file][count_node] = np.delete(np.array(list(row)).astype('float'), [0,1], 0)
-                    self.SpikeCount[count_file][count_node] = int(row[1])
+                    SpikeTimes[count_file][count_node] = np.delete(np.array(list(row)).astype('float'), [0,1], 0)
+                    SpikeCount[count_file][count_node] = int(row[1])
                     count_node += 1
-            count_file += 1
-        self.SpikeCount = np.array(self.SpikeCount)
-        self.SpikeTimes = np.array(self.SpikeTimes)
 
-    class Calculate:
+        SpikeCount = np.array(SpikeCount)
+        SpikeTimes = np.array(SpikeTimes)
 
-        def __init__(self, FiringRate, Config, data_info, output_path, spiking_data, simulation_config):
-            self.FiringRate = FiringRate
-            self.Config = Config
-            self.data_info = data_info
-            self.Nsize = int(self.Config[0][0])
-            self.output_path = output_path
-            self.spiking_data = spiking_data
-            self.simulation_config = simulation_config
+        return SpikeCount, SpikeTimes, Config, number_of_files, output_path
 
-        def findIncreasedInFiringRate(self, file_index: int, output=False, output_file='Nodes_of_Increased_in_Firing_Rate.txt'):
-            # file_index starts from 1
-            index_of_increased = np.argwhere(self.ChangeInFiringRate[file_index-1] > 0).flatten()
-            activity_of_increased = self.ChangeInFiringRate[file_index-1][index_of_increased].flatten()
-            if output == True:
-                with open(self.output_path+output_file, 'w') as file_output:
-                    for count in range(len(index_of_increased)):
-                        file_output.write('{:d}\t{}\n'.format(index_of_increased[count], activity_of_increased[count]))
-            return index_of_increased, activity_of_increased
-
-        def findDecreasedInFiringRate(self, file_index: int, output=False, output_file='Nodes_of_Decreased_in_Firing_Rate.txt'):
-            # file_index starts from 1
-            index_of_decreased = np.argwhere(self.ChangeInFiringRate[file_index-1] < 0).flatten()
-            activity_of_decreased = self.ChangeInFiringRate[file_index-1][index_of_decreased].flatten()
-            if output == True:
-                with open(self.output_path+output_file, 'w') as file_output:
-                    for count in range(len(index_of_decreased)):
-                        file_output.write('{:d}\t{}\n'.format(index_of_decreased[count], activity_of_decreased[count]))
-            return index_of_decreased, activity_of_decreased
-
-        def findUnchangedInFiringRate(self, file_index: int, output=False, output_file='Nodes_of_Unchanged_in_Firing_Rate.txt'):
-            # file_index starts from 1
-            index_of_unchanged = np.argwhere(self.ChangeInFiringRate[file_index-1] == 0).flatten()
-            activity_of_unchanged = self.ChangeInFiringRate[file_index-1][index_of_unchanged].flatten()
-            if output == True:
-                with open(self.output_path+output_file, 'w') as file_output:
-                    for count in range(len(index_of_unchanged)):
-                        file_output.write('{:d}\t{}\n'.format(index_of_unchanged[count], activity_of_unchanged[count]))
-            return index_of_unchanged, activity_of_unchanged
-
-        def RatioOfIncreaseInFiringRate(self):
-            avg_firing_rate_original_network = Spiking(self.spiking_data[0], self.simulation_config).calculate.AverageFiringRate(console_print=False)
-            count = 0
-            avg_firing_rate_altered_networks = np.zeros(len(self.spiking_data)-1)
-            for each_datum in self.spiking_data[1:]:
-                avg_firing_rate_altered_networks[count] = Spiking(each_datum, self.simulation_config).calculate.AverageFiringRate(console_print=False)
-                count += 1
-            return avg_firing_rate_altered_networks / avg_firing_rate_original_network-1
+    def initChangeInFiringRate(self, SpikeCount, Config, number_of_files):
+        FiringRate = SpikeCount
+        for count in range(number_of_files):
+            FiringRate[count] = FiringRate[count] / Config[count][2] * 1000     # self.Config[0][2] = Tn
+        ChangeInFiringRate = np.zeros((number_of_files-1, int(Config[0][0])))   # self.Config[0][0] = Nsize
+        for count in range(1, number_of_files):
+            ChangeInFiringRate[count-1] = FiringRate[count] - FiringRate[0]
+        return ChangeInFiringRate
 
     class Plot:
 
-        def __init__(self, SpikeTimes, FiringRate, ChangeInFiringRate, Config, data_info, output_path, spiking_data, simulation_config, coupling, coupling_enhance_factor, coupling_delimiter):
-            self.SpikeTimes = SpikeTimes
-            self.FiringRate = FiringRate
+        def __init__(self, ChangeInFiringRate, Config, number_of_files, output_path):
             self.ChangeInFiringRate = ChangeInFiringRate
-            self.Config = Config
-            self.data_info = data_info
-            self.Nsize = int(self.Config[0][0])
+            self.number_of_plots = number_of_files - 1
             self.output_path = output_path
-            self.spiking_data = spiking_data
-            self.simulation_config = simulation_config
-            self.coupling = coupling
-            self.coupling_enhance_factor = coupling_enhance_factor
-            self.coupling_delimiter = coupling_delimiter
-
-        def FiringRateDensity(self, output_file='Firing_Rate_Density', bins=60, xrange=(0,10), yrange=(0,None), file_label=''):
-            density = []; x_value = []
-            if type(bins) == list: 
-                for count in range(0, len(self.FiringRate)):
-                    density_each, bin_edges = np.histogram(self.FiringRate[count], bins=np.linspace(xrange[0], xrange[1], bins[count]), density=True)
-                    density.append(density_each)
-                    x_value.append((bin_edges[1:] + bin_edges[:-1]) / 2)
-                
-                fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-                color_list = ['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', '']
-                for count in range(len(density)):
-                    ax.plot(x_value[count], density[count], str(color_list[count])+'-', lw=2, label='Firing rate density '+str(self.data_info[count]))
-                ax.set(xlabel='Firing rate (Hz)', ylabel='Probability density')
-                ax.set_xlim(xrange[0], xrange[1])
-                ax.set_ylim(yrange[0], yrange[1])
-                ax.grid(True)
-                ax.legend()
-                if file_label == '': output_file += '.svg'
-                else: output_file += '_' + file_label + '.svg'
-                fig.savefig(os.path.join(self.output_path, output_file))
-                plt.clf()
-            else:
-                for count in range(0, len(self.FiringRate)):
-                    density_each, bin_edges = np.histogram(self.FiringRate[count], bins=np.linspace(xrange[0], xrange[1], bins), density=True)
-                    density.append(density_each)
-                x_value = (bin_edges[1:] + bin_edges[:-1]) / 2
-                
-                fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-                color_list = ['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', '']
-                count = 0
-                for each in density:
-                    ax.plot(x_value, each, str(color_list[count])+'-', lw=2, label='Firing rate density '+str(self.data_info[count]))
-                    count += 1
-                ax.set(xlabel='Firing rate (Hz)', ylabel='Probability density')
-                ax.set_xlim(xrange[0], xrange[1])
-                ax.set_ylim(yrange[0], yrange[1])
-                ax.grid(True)
-                ax.legend()
-                if file_label == '': output_file += '.svg'
-                else: output_file += '_' + file_label + '.svg'
-                fig.savefig(os.path.join(self.output_path, output_file))
-                plt.clf()
         
-        def InterSpikeIntervalDensity(self, output_file='Interspike_Interval_Density', bins=150, xrange=(-3,1), file_label=''):
-            density = []
-            for count_1 in range(0, len(self.SpikeTimes)):
-                IsI = np.empty(self.SpikeTimes[count_1].shape[0], dtype=object)
-                count_2 = 0
-                for row in self.SpikeTimes[count_1]:
-                    try: IsI[count_2] = np.diff(row)
-                    except ValueError: IsI[count_2] = np.diff(np.array([0]))
-                    count_2 += 1
-                IsI = np.concatenate([item for item in IsI.flatten()], 0) / 1000
-                density_each, bin_edges = np.histogram(IsI, bins=np.logspace(xrange[0], xrange[1], bins))
-                density_each = np.array(density_each, dtype=float)
-                density_each /= np.dot(density_each, np.diff(bin_edges)) # normalization
-                density.append(density_each)
+        def ChangeInFiringRateDistribution(self, bins=[-2,12,120], label_list=[], style_list = ['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', ''], xrange=[-2,12], yrange=[None,None], yaxis_logscale=True, file_name='Change_in_Firing_Rate_Distribution', file_label=''):
+            """
+            Plot a distribution graph of changes in neuron firing rate.
+
+            Parameters
+            ----------
+            bins : list
+                Defines the lower, upper bounds of bins and the number of bins for histogram, in the following format: `[lower bound of bins, upper bound of bins, number of bins]`.
+            label_list : list of str
+                Specifies the legend of the plots.
+            style_list : list of str
+                Specifies the style of the plots. Default: `['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', '']`.
+            xrange : list
+                Defines the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
+            yrange : list
+                Defines the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit. If \'yrange\' contains zero, the condition will be ingored for log scale.
+            file_name : str
+                Defines the output file name. Default: Interspike_Interval_Distribution.svg.
+            file_label : str
+                Appends a label / tag at the end of the file name.
+            plot_axes
+                Takes the MATPLOTLIB 'axes' as input. Suppressed all file output functions when used. Plots will be return directly by the method, instead of exporting a file.
+            """
+            if np.amax(self.ChangeInFiringRate) > bins[1]: print('Warning! Maximum of Change in Firing Rate exceeds upper bound of bins range. Max Change: {:.5}; Max bins range: {:.5}'.format(np.amax(self.ChangeInFiringRate), float(bins[1])))
+            if np.amin(self.ChangeInFiringRate) < bins[0]: print('Warning! Minimum of Change in Firing Rate subceeds lower bound of bins range. Min Change: {:.5}; Min bins range: {:.5}'.format(np.amin(self.ChangeInFiringRate), float(bins[0])))
+            hist_density = np.zeros(self.number_of_plots, dtype=object)
+            for count in range(self.number_of_plots):
+                each_density, bin_edges = np.histogram(self.ChangeInFiringRate[count], bins=np.linspace(bins[0], bins[1], bins[2]), density=True)
+                hist_density[count] = each_density
             x_value = (bin_edges[1:] + bin_edges[:-1]) / 2
 
             fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-            color_list = ['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', '']
-            count = 0
-            for each in density:
-                ax.semilogx(x_value, each, str(color_list[count])+'-', lw=2, label='Log ISI density '+str(self.data_info[count]))
-                count += 1
-            ax.set(xlabel='ISI (s)', ylabel='Probability density')
-            # ax.set_xlim(0, None)
-            ax.set_ylim(0, None)
-            ax.grid(True)
-            ax.legend()
-            if file_label == '': output_file += '.svg'
-            else: output_file += '_' + file_label + '.svg'
-            fig.savefig(os.path.join(self.output_path, output_file))
-            plt.clf()
-
-        def ChangeInFiringRateDistribution(self, bins=[-2,12,120], xrange=[-2,12], yrange=[None,None], yaxis_logscale=False, output_file='Change_in_Firing_Rate_Distribution', file_label=''):
-            if np.amax(self.ChangeInFiringRate) > bins[1]: print('Warning! Maximum of Change in Firing Rate exceeds upper bound of bins range. Max Change: {}; Max bins range: {}'.format(np.amax(self.ChangeInFiringRate), bins[1]))
-            if np.amin(self.ChangeInFiringRate) < bins[0]: print('Warning! Minimum of Change in Firing Rate subceeds lower bound of bins range. Min Change: {}; Min bins range: {}'.format(np.amin(self.ChangeInFiringRate), bins[0]))
-            density = np.zeros(len(self.ChangeInFiringRate), dtype=object)
-            for count in range(1, len(self.ChangeInFiringRate)+1):
-                density_each, bin_edges = np.histogram(self.ChangeInFiringRate[count-1], bins=np.linspace(bins[0], bins[1], bins[2]), density=True)
-                density[count-1] = density_each
-            x_value = (bin_edges[1:] + bin_edges[:-1]) / 2
-
-            fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-            color_list = ['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', '']
             if yaxis_logscale == False:
-                for count in range(len(density)):
-                    ax.plot(x_value, density[count], str(color_list[count])+'-', lw=2, label=''+str(self.data_info[count]))
+                for count in range(self.number_of_plots):
+                    ax.plot(x_value, hist_density[count], str(style_list[count])+'-', lw=2, label=''+str(label_list[count]))
             elif yaxis_logscale == True:
-                for count in range(len(density)):
-                    plot_data_corrected = np.vstack((density[count], x_value))
-                    plot_data_corrected = np.delete(plot_data_corrected, np.argwhere(plot_data_corrected[0] == 0), 1)                          
-                    ax.semilogy(plot_data_corrected[1], plot_data_corrected[0], str(color_list[count])+'-', lw=2, label=''+str(self.data_info[count]))
+                for count in range(self.number_of_plots):
+                    # # The following lines removes the points with zero density in the plot
+                    plot_data_corrected = np.vstack((hist_density[count], x_value))
+                    plot_data_corrected = np.delete(plot_data_corrected, np.argwhere(plot_data_corrected[0] == 0), 1)
+                    ax.semilogy(plot_data_corrected[1], plot_data_corrected[0], str(style_list[count])+'-', lw=2, label=''+str(label_list[count]))
+                    # # Or to use the following line without removing zero points
+                    # ax.semilogy(x_value, hist_density[count], str(style_list[count])+'-', lw=2, label=''+str(label_list[count]))
             ax.set(xlabel='Change in firing rate (Hz)', ylabel='Probability density')
             ax.set_xlim(xrange[0], xrange[1])
             ax.set_ylim(yrange[0], yrange[1])
             ax.grid(True)
             ax.legend()
 
-            if file_label == '': output_file_plot = output_file + '.svg'
-            else: output_file_plot = output_file + '_' + file_label + '.svg'
+            if file_label == '': output_file_plot = file_name + '.svg'
+            else: output_file_plot = file_name + '_' + file_label + '.svg'
             fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
-            if file_label == '': output_file_info = output_file + '.txt'
-            else: output_file_info = output_file + '_' + file_label + '.txt'
+
+            if file_label == '': output_file_info = file_name + '.txt'
+            else: output_file_info = file_name + '_' + file_label + '.txt'
             with open(self.output_path+output_file_info, 'w') as fp_info:
                 fp_info.write('### Plot information ###\n\n')
-                fp_info.write('Max change in firing rate: {}\n'.format(np.amax(self.ChangeInFiringRate)))
-                fp_info.write('Min change in firing rate: {}\n'.format(np.amin(self.ChangeInFiringRate)))
+                fp_info.write('Max change in firing rate: {}\nMin change in firing rate: {}\n'.format(np.amax(self.ChangeInFiringRate), np.amin(self.ChangeInFiringRate)))
                 fp_info.write('\n### Plot settings ###\n\n')
-                fp_info.write('Bin size: {}\n'.format((bins[1]-bins[0])/bins[2]))
-                fp_info.write('Bin bounds: lower: {}, upper: {}\n'.format(bins[0], bins[1]))
-                fp_info.write('Number of bins: {}\n'.format(bins[2]))
-
-        def SuppressionRatio_vs_FiringRateIncreaseRatio(self, suppressed_values: list, plot_label='', output_file='Ratio_of_Suppression_vs_Ratio_of_Increase_in_Firing_Rate', file_label=''):
-            if self.coupling == None: print('Error. No coupling matrix input.'); return -1
-            ratio_of_suppression = Coupling(self.coupling, coupling_enhance_factor=self.coupling_enhance_factor, delimiter=self.coupling_delimiter).calculate.RatioOfSuppression(suppressed_values)
-            avg_firing_rate_original_network = Spiking(self.spiking_data[0], self.simulation_config).calculate.AverageFiringRate(console_print=False)
-            avg_firing_rate_altered_networks = np.zeros(len(suppressed_values))
-            for count in range(0, len(suppressed_values)):
-                avg_firing_rate_altered_networks[count] = Spiking(self.spiking_data[count+1], self.simulation_config).calculate.AverageFiringRate(console_print=False)
-            ratio_of_increase_in_firing_rate = avg_firing_rate_altered_networks / avg_firing_rate_original_network - 1
-            fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-            ax.plot(ratio_of_suppression, ratio_of_increase_in_firing_rate, 'b^-', lw=2, label=plot_label)
-            ax.set(xlabel='Ratio of suppression in inhibitory synaptic weights', ylabel='Ratio of increase in avergae firing rate') 
-            ax.grid(True)
-            ax.legend()
-            if file_label == '': output_file_plot = output_file + '.svg'
-            else: output_file_plot = output_file + '_' + file_label + '.svg'
-            fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
-        
-        def EnhancementRatio_vs_FiringRateIncreaseRatio(self, enhanced_values: list, plot_label = '', output_file='Ratio_of_Enhancement_vs_Ratio_of_Increase_in_Firing_Rate', file_label=''):
-            if self.coupling == None: print('Error. No coupling matrix input.'); return -1
-            ratio_of_enhancement = Coupling(self.coupling, coupling_enhance_factor=self.coupling_enhance_factor, delimiter=self.coupling_delimiter).calculate.RatioOfEnhancement(enhanced_values)
-            avg_firing_rate_original_network = Spiking(self.spiking_data[0], self.simulation_config).calculate.AverageFiringRate(console_print=False)
-            avg_firing_rate_altered_networks = np.zeros(len(enhanced_values))
-            for count in range(0, len(enhanced_values)):
-                avg_firing_rate_altered_networks[count] = Spiking(self.spiking_data[count+1], self.simulation_config).calculate.AverageFiringRate(console_print=False)
-            ratio_of_increase_in_firing_rate = avg_firing_rate_altered_networks / avg_firing_rate_original_network - 1
-            fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-            ax.plot(ratio_of_enhancement, ratio_of_increase_in_firing_rate, 'b^-', lw=2, label=plot_label)
-            ax.set(xlabel='Ratio of enhancement in excitatory synaptic weights', ylabel='Ratio of increase in avergae firing rate') 
-            ax.grid(True)
-            ax.legend()
-            if file_label == '': output_file_plot = output_file + '.svg'
-            else: output_file_plot = output_file + '_' + file_label + '.svg'
-            fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
-
-
-def SuppressionRatio_vs_FiringRateIncreaseRatio_Combined(spiking_data_1, spiking_data_2, simulation_config, coupling_1, coupling_2, suppressed_values_1: list, suppressed_values_2: list, coupling_enhance_factor_1, coupling_enhance_factor_2, coupling_delimiter_1, coupling_delimiter_2, label_1='', label_2='', output_file='Suppression_Ratio_vs_Firing_Rate_Increase_Ratio', file_label=''):
-    ratio_of_suppression_1 = Coupling(coupling_1, coupling_enhance_factor=coupling_enhance_factor_1, delimiter=coupling_delimiter_1).calculate.RatioOfSuppression(suppressed_values_1)
-    ratio_of_suppression_2 = Coupling(coupling_2, coupling_enhance_factor=coupling_enhance_factor_2, delimiter=coupling_delimiter_2).calculate.RatioOfSuppression(suppressed_values_2)
-    avg_firing_rate_original_network_1 = Spiking(spiking_data_1[0], simulation_config).calculate.AverageFiringRate(console_print=False)
-    avg_firing_rate_original_network_2 = Spiking(spiking_data_2[0], simulation_config).calculate.AverageFiringRate(console_print=False)
-    avg_firing_rate_altered_networks_1 = np.zeros(len(suppressed_values_1))
-    avg_firing_rate_altered_networks_2 = np.zeros(len(suppressed_values_2))
-    for count in range(0, len(suppressed_values_1)):
-        avg_firing_rate_altered_networks_1[count] = Spiking(spiking_data_1[count+1], simulation_config).calculate.AverageFiringRate(console_print=False)
-    for count in range(0, len(suppressed_values_2)):
-        avg_firing_rate_altered_networks_2[count] = Spiking(spiking_data_2[count+1], simulation_config).calculate.AverageFiringRate(console_print=False)
-    ratio_of_increase_in_firing_rate_1 = avg_firing_rate_altered_networks_1 / avg_firing_rate_original_network_1 - 1
-    ratio_of_increase_in_firing_rate_2 = avg_firing_rate_altered_networks_2 / avg_firing_rate_original_network_2 - 1
-    fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-    ax.plot(ratio_of_suppression_1, ratio_of_increase_in_firing_rate_1, 'b^-', lw=2, label=label_1)
-    ax.plot(ratio_of_suppression_2, ratio_of_increase_in_firing_rate_2, 'ro-', lw=2, label=label_2)
-    ax.set(xlabel='Ratio of suppression in inhibitory synaptic weights', ylabel='Ratio of increase in avergae firing rate')
-    ax.set_ylim(-0.15, 1.05)
-    ax.grid(True)
-    ax.legend()
-    
-    if file_label == '': output_file_plot = output_file + '.svg'
-    else: output_file_plot = output_file + '_' + file_label + '.svg'
-    fig.savefig(os.path.join(os.path.dirname(os.path.abspath(__file__)), output_file_plot)); plt.clf()
-
-def EnhancementRatio_vs_FiringRateIncreaseRatio_Combined(spiking_data_1, spiking_data_2, simulation_config, coupling_1, coupling_2, enhanced_values_1: list, enhanced_values_2: list, coupling_enhance_factor_1, coupling_enhance_factor_2, coupling_delimiter_1, coupling_delimiter_2, label_1='', label_2='', output_file='Enhancement_Ratio_vs_Firing_Rate_Increase_Ratio', file_label=''):
-    ratio_of_enhancement_1 = Coupling(coupling_1, coupling_enhance_factor=coupling_enhance_factor_1, delimiter=coupling_delimiter_1).calculate.RatioOfEnhancement(enhanced_values_1)
-    ratio_of_enhancement_2 = Coupling(coupling_2, coupling_enhance_factor=coupling_enhance_factor_2, delimiter=coupling_delimiter_2).calculate.RatioOfEnhancement(enhanced_values_2)
-    avg_firing_rate_original_network_1 = Spiking(spiking_data_1[0], simulation_config).calculate.AverageFiringRate(console_print=False)
-    avg_firing_rate_original_network_2 = Spiking(spiking_data_2[0], simulation_config).calculate.AverageFiringRate(console_print=False)
-    avg_firing_rate_altered_networks_1 = np.zeros(len(enhanced_values_1))
-    avg_firing_rate_altered_networks_2 = np.zeros(len(enhanced_values_2))
-    for count in range(0, len(enhanced_values_1)):
-        avg_firing_rate_altered_networks_1[count] = Spiking(spiking_data_1[count+1], simulation_config).calculate.AverageFiringRate(console_print=False)
-    for count in range(0, len(enhanced_values_2)):
-        avg_firing_rate_altered_networks_2[count] = Spiking(spiking_data_2[count+1], simulation_config).calculate.AverageFiringRate(console_print=False)
-    ratio_of_increase_in_firing_rate_1 = avg_firing_rate_altered_networks_1 / avg_firing_rate_original_network_1 - 1
-    ratio_of_increase_in_firing_rate_2 = avg_firing_rate_altered_networks_2 / avg_firing_rate_original_network_2 - 1
-    fig, ax = plt.subplots(figsize=(9, 6), dpi=50)
-    ax.plot(ratio_of_enhancement_1, ratio_of_increase_in_firing_rate_1, 'b^-', lw=2, label=label_1)
-    ax.plot(ratio_of_enhancement_2, ratio_of_increase_in_firing_rate_2, 'ro-', lw=2, label=label_2)
-    ax.set(xlabel='Ratio of enhancement in excitatory synaptic weights', ylabel='Ratio of increase in avergae firing rate')
-    ax.grid(True)
-    ax.legend()
-    
-    if file_label == '': output_file_plot = output_file + '.svg'
-    else: output_file_plot = output_file + '_' + file_label + '.svg'
-    fig.savefig(os.path.join(os.path.dirname(os.path.abspath(__file__)), output_file_plot)); plt.clf()
+                fp_info.write('Bin size: {}\nBin bounds: lower: {}, upper: {}\nNumber of bins: {}\n'.format( (bins[1]-bins[0])/bins[2], bins[0], bins[1], bins[2] ))

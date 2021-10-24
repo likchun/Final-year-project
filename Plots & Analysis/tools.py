@@ -9,14 +9,14 @@ import matplotlib.style as mplstyle
 import seaborn as sns
 
 
-class Coupling:
+class Network:
     """
-    Analysis and graphings for coupling matrix.
+    Analysis and graphings for networks from coupling matrix.
 
     Parameters
     ----------
-    coupling_matrix_path : str
-        Path of the input coupling matrix file, e.g., DIV66.txt, exclude input folder if `input_folder` is used.
+    coupling_matrix : str
+        Name of the input coupling matrix file, e.g., DIV66.txt
     coupling_enhance_factor : int or float, default: 1
         Multiply all synaptic weights by a factor.
     delimiter : str, default: '\\t'
@@ -28,37 +28,42 @@ class Coupling:
 
     Notes
     -----
-    Invoke object `calculate` to find basic features and properties of the coupling matrix.\n
-    Invoke object `plot` to plot graphs of basic features and properties of the coupling matrix.
+    Invoke object `calculate` to find basic features and properties of the network.\n
+    Invoke object `plot` to plot graphs of basic features and properties of the network.\n
+    Invoke object `generate` to generate a new coupling matrix base on the input matrix.
 
     Examples
     --------
-    To start with, create a object for class `Coupling` by specifying the file path and delimiter (optional).
-    Invoke object `calculate` / `plot` to find / plot basic features and properties of the coupling matrix.
-    >>> c = Coupling('DIV66.txt', delimiter='\\t')
-    >>> c_calc = c.calculate
-    >>> c_plot = c.plot
+    To start with, create an object for class `Network` by specifying the coupling matrix file and the delimiter (optional).
+    >>> network = Network('DIV66.txt', delimiter='\\t')
 
-    Find the *connection probability* of the coupling matrix:
-    >>> c = Coupling('DIV66.txt', delimiter='\\t')
-    >>> c.calculate.ConnectionProbability()
-    'terminal> Connection probability: 0.015344'
-    >>> result = c.calculate.ConnectionProbability(print_console=False)
+    Invoke object `calculate` to find basic features and properties of the network.
+    E.g., find the *connection probability* of the network:
+    >>> network.calculate.ConnectionProbability()
+    # terminal> Connection probability: 0.015344
+    >>> result = network.calculate.ConnectionProbability(print_console=False)
     >>> print(result)
-    'terminal> 0.015344'
+    # terminal> 0.015344
 
-    Plot the *average synaptic weight excitatory incoming links distribution* of the coupling matrix:
-    >>> c = Coupling('DIV66.txt', delimiter='\\t')
-    >>> c.plot.AverageSynapticWeight_ExcitatoryIncomingLinks()
+    Invoke object `plot` to plot graphs of basic features and properties of the network.
+    E.g., plot the *average synaptic weight excitatory incoming links distribution* of the network:
+    >>> network.plot.AverageSynapticWeight_ExcitatoryIncomingLinks()
+    # > The plot 'Average_Synaptic_Weight_Excitatory_Incoming_Links.svg' created next to the python script.
+
+    Invoke object `generate` to generate a new coupling matrix base on the input matrix.
+    E.g., generate a coupling matrix, whose rows are random permutation of the input matrix:
+    >>> network.plot.ShuffleRows(output_file=True)
+    # > The matrix file 'DIV66_Shuffle_Row.txt' created next to the python script.
     """
 
-    def __init__(self, coupling_matrix_path: str, coupling_enhance_factor=1, delimiter='\t', input_folder=None, output_folder=None):
-        self.initCouplingMatrix(coupling_matrix_path, delimiter, input_folder, output_folder)
+    def __init__(self, coupling_matrix: str, coupling_enhance_factor=1, delimiter='\t', input_folder=None, output_folder=None):
+        self.initCouplingMatrix(coupling_matrix, delimiter, input_folder, output_folder)
         self.Coupling = coupling_enhance_factor * self.Coupling
         self.calculate = self.Calculate(self.Coupling)
         self.plot = self.Plot(self.Coupling, self.output_path)
+        self.generate = self.Generate(self.Coupling, coupling_matrix, self.output_path)
 
-    def initCouplingMatrix(self, coupling_matrix_path, delimiter, input_folder, output_folder):
+    def initCouplingMatrix(self, coupling_matrix, delimiter, input_folder, output_folder):
         # Initialize coupling matrix
         this_dir = os.path.dirname(os.path.abspath(__file__))
         if input_folder == None: input_folder = ''
@@ -70,7 +75,7 @@ class Coupling:
         try: os.mkdir(self.output_path)
         except FileExistsError: pass
 
-        with open(input_path+coupling_matrix_path, 'r', newline='') as file_input:
+        with open(input_path+coupling_matrix, 'r', newline='') as file_input:
             reader = csv.reader(file_input, delimiter=delimiter)
             self.Coupling = np.array(list(reader)).astype('float')
 
@@ -418,11 +423,98 @@ class Coupling:
             ax.legend()
             fig.savefig(os.path.join(self.output_path, output_file))
             plt.clf()
+    
+    class Generate:
+        def __init__(self, Coupling, coupling_matrix, output_path):
+            # Initialize instance attributes
+            self.Coupling = Coupling
+            self.Nsize = np.shape(self.Coupling)[0]
+            self.orig_matrix_name = coupling_matrix
+            if self.orig_matrix_name[-4] == '.': self.orig_matrix_name = self.orig_matrix_name[:-4] # Remove file extension
+            self.output_path = output_path
+
+        def _write_matrix_into_file(self, Matrix, file_label, file_type='txt'):
+            if file_label == '': file_path = self.orig_matrix_name + '.' + file_type
+            else: file_path = self.orig_matrix_name + '_' + file_label + '.' + file_type
+            with open(self.output_path+file_path, 'w') as fp:
+                for row in Matrix:
+                    if row[0] == 0: fp.write('{:.0f}'.format(row[0])) # To reduce file size
+                    else:           fp.write( '{:.8}'.format(row[0]))
+                    for element in row[1:]:
+                        if element == 0:    fp.write('\t{:.0f}'.format(element)) # To reduce file size
+                        else:               fp.write( '\t{:.8}'.format(element))
+                    fp.write('\n')
+
+        def ShuffleRows(self, output_file=False, random_seed=0, file_label='Shuffle_Row'):
+            """
+            Shuffle rows of a coupling matrix.
+
+            Parameters
+            ----------
+            output_file : bool, default: False
+                Output the resulting maxtrix into a TXT file if `True`.
+            random_seed : int or float, default: 0
+                Seed to generate random number in numpy.
+            file_label : str
+                Append a label / tag at the end of the file name.
+            
+            Returns
+            -------
+            numpy.ndarray
+                A coupling matrix with shffled rows.
+
+            Examples
+            --------
+            To shuffle the rows of the coupling matrix in data file 'DIV66.txt':
+            >>> # Load 'DIV66', see class Network for more details
+            >>> network = Network('DIV66.txt', delimiter='\\t')
+            >>> network.generate.ShuffleRows(output_file=True)
+            # > Resulting matrix file 'DIV66_Shuffle_Row.txt' created next to the python script.
+            """
+            np.random.seed(random_seed)
+            altered_Coupling = self.Coupling
+            np.take(altered_Coupling, np.random.rand(self.Nsize).argsort(), axis=0, out=altered_Coupling)
+
+            if output_file == True: self._write_matrix_into_file(altered_Coupling, file_label)
+            return altered_Coupling
+
+        def ShuffleColumns(self, output_file=False, random_seed=0, file_label='Shuffle_Col'):
+            """
+            Shuffle columns of a coupling matrix.
+
+            Parameters
+            ----------
+            output_file : bool, default: False
+                Output the resulting maxtrix into a TXT file if `True`.
+            random_seed : int or float, default: 0
+                Seed to generate random number in numpy.
+            file_label : str
+                Append a label / tag at the end of the file name.
+            
+            Returns
+            -------
+            numpy.ndarray
+                A coupling matrix with shffled columns.
+
+            Examples
+            --------
+            To shuffle the columns of the coupling matrix in data file 'DIV66.txt':
+            >>> # Load 'DIV66', see class Network for more details
+            >>> network = Network('DIV66.txt', delimiter='\\t')
+            >>> network.generate.ShuffleColumns(output_file=True)
+            # > Resulting matrix file 'DIV66_Shuffle_Col.txt' created next to the python script.
+            """
+            np.random.seed(random_seed)
+            altered_Coupling = self.Coupling
+            np.take(altered_Coupling, np.random.rand(self.Nsize).argsort(), axis=1, out=altered_Coupling)
+            
+            if output_file == True: self._write_matrix_into_file(altered_Coupling, file_label)
+            return altered_Coupling
 
 
-class Spiking:
+class Dynamic:
     """
-    Analysis and graphings for spiking data.
+    Analysis and graphings for neuron dynamics from spiking data.
 
     Parameters
     ----------
@@ -444,7 +536,7 @@ class Spiking:
 
     Examples
     --------
-    To start with, create a object for class `Spiking` by specifying the spiking data file path and the configuration file path.
+    To start with, create an object for class `Spiking` by specifying the spiking data file path and the configuration file path.
     Invoke object `calculate` / `plot` to find / plot basic features and properties of the spiking data.
     >>> s = Spiking('INPUT_FOLDER\\\OUT_SPIK.txt, INPUT_FOLDER\\\INI_CNFG')
     >>> s_calc = s.calculate
@@ -653,11 +745,11 @@ class Spiking:
             Parameters
             ----------
             plot_horizontal_stretch : float or int
-                Stretches the plot horizontally by the `plot_horizontal_stretch` factor. Useful for plotting raster graphs for simulations with large simulation duration T.
-            file_name : str
-                Defines the output file name. Default: Spiking_Raster_Plot.svg.
+                Stretch the plot horizontally by the `plot_horizontal_stretch` factor. Useful for plotting raster graphs for simulations with large simulation duration T.
+            file_name : str, default: 'Spiking_Raster_Plot'
+                Output file name.
             file_label : str
-                Appends a label / tag at the end of the file name.
+                Append a label / tag at the end of the file name.
 
             Notes
             -----
@@ -674,9 +766,9 @@ class Spiking:
             ax.set_ylim(start_node-2, end_node+1)
             ax.grid(True)
 
-            if file_label == '': output_file_plot = file_name + '.png'
-            else: output_file_plot = file_name + '_' + file_label + '.png'
-            fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
+            if file_label == '': file_plot_path = file_name + '.png'
+            else: file_plot_path = file_name + '_' + file_label + '.png'
+            fig.savefig(os.path.join(self.output_path, file_plot_path)); plt.clf()
         
         def FiringRateDistribution(self, bins=[0, 80, 800], xrange=[0,10], yrange=[0,None], show_norm=False, file_name='Firing_Rate_Distribution', file_label='', plot_axes=None, info_list=[]):
             """
@@ -684,33 +776,33 @@ class Spiking:
 
             Parameters
             ----------
-            bins : list
-                Defines the lower, upper bounds of bins and the number of bins for histogram, in the following format: `[lower bound of bins, upper bound of bins, number of bins]`.
-            xrange : list
-                Defines the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
-            yrange : list
-                Defines the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit.
-            show_norm : bool
-                Displays a Gaussian distribution curve with mean and S.D. extracted from input data.
-            file_name : str
-                Defines the output file name. Default: Firing_Rate_Distribution.svg.
+            bins : list, default: [0, 80, 800]
+                Define the lower, upper bounds of bins and the number of bins for histogram, in the following format: `[lower bound of bins, upper bound of bins, number of bins]`.
+            xrange : list, default: [0,10]
+                Define the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
+            yrange : list, default: [0,None]
+                Define the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit.
+            show_norm : bool, default: False
+                Display a Gaussian distribution curve with mean and S.D. extracted from the input data.
+            file_name : str, default: 'Firing_Rate_Distribution'
+                Output file name.
             file_label : str
-                Appends a label / tag at the end of the file name.
-            plot_axes
-                Takes the MATPLOTLIB 'axes' as input. Suppressed all file output functions when used. Plots will be return directly by the method, instead of exporting a file.
+                Append a label / tag at the end of the file name.
+            plot_axes : matplotlib.axes.Axes
+                Take the matplotlib Axes as input. Suppressed all file output functions when used. Plots will be return directly by the method, instead of exporting a file.
             info_list : list
-                Specifies the style, legend of the current plot, in the following format: `[line style, legend]`.
+                Specify the style, legend of the current plot, in the following format: `[line style, legend]`.
             
             Returns
             -------
-            `matplotlib.axes.Axes`
-                A matplotlib axes returned.
+            matplotlib.axes.Axes
+                A matplotlib Axes returned.
 
             Notes
             -----
             Export a SVG file by default.\n
             When exporting a SVG file, an TXT file with the same name containing details of firing rate and bin size will also be exported.\n
-            `show_norm` and file output are disabled when `plot_axes` takes an matplotlib axes as an argument.
+            `show_norm` and file output are disabled when `plot_axes` takes an matplotlib Axes as an argument.
             """
             FiringRate = self.SpikeCount / float(self.Tn) * 1000
 
@@ -735,13 +827,13 @@ class Spiking:
                 ax.grid(True)
                 ax.legend()
 
-                if file_label == '': output_file_plot = file_name + '.svg'
-                else: output_file_plot = file_name + '_' + file_label + '.svg'
-                fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
+                if file_label == '': file_plot_path = file_name + '.svg'
+                else: file_plot_path = file_name + '_' + file_label + '.svg'
+                fig.savefig(os.path.join(self.output_path, file_plot_path)); plt.clf()
 
-                if file_label == '': output_file_info = file_name + '.txt'
-                else: output_file_info = file_name + '_' + file_label + '.txt'
-                with open(self.output_path+output_file_info, 'w') as fp_info:
+                if file_label == '': file_info_path = file_name + '.txt'
+                else: file_info_path = file_name + '_' + file_label + '.txt'
+                with open(self.output_path+file_info_path, 'w') as fp_info:
                     fp_info.write('### Plot information ###\n')
                     fp_info.write('Max firing rate: {0}\nMin firing rate: {1}\n'.format(np.amax(FiringRate), np.amin(FiringRate)))
                     fp_info.write('Total density by areal summation: {0}\n'.format(total_density))
@@ -761,31 +853,31 @@ class Spiking:
 
             Parameters
             ----------
-            bins : list
-                Defines the lower, upper bounds of bins and the number of bins for histogram, in the following format: `[lower bound of bins, upper bound of bins, number of bins]`.
-            xrange : list
-                Defines the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
-            yrange : list
-                Defines the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit. If \'yrange\' contains zero, the condition will be ingored for log scale.
-            file_name : str
-                Defines the output file name. Default: Interspike_Interval_Distribution.svg.
+            bins : list, default: [0.0005,50,180]
+                Define the lower, upper bounds of bins and the number of bins for histogram, in the following format: `[lower bound of bins, upper bound of bins, number of bins]`.
+            xrange : list, default: [0.0005,10]
+                Define the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
+            yrange : list, default: [0,None]
+                Define the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit. If \'yrange\' contains zero, the condition will be ingored for log scale.
+            file_name : str, default: 'Interspike_Interval_Distribution'
+                Output file name.
             file_label : str
-                Appends a label / tag at the end of the file name.
-            plot_axes
-                Takes the MATPLOTLIB 'axes' as input. Suppressed all file output functions when used. Plots will be return directly by the method, instead of exporting a file.
+                Append a label / tag at the end of the file name.
+            plot_axes : matplotlib.axes.Axes
+                Take the matplotlib Axes as input. Suppressed all file output functions when used. Plots will be return directly by the method, instead of exporting a file.
             info_list : list
-                Specifies the style, legend of the current plot, in the following format: `[line style, legend]`.
+                Specify the style, legend of the current plot, in the following format: `[line style, legend]`.
             
             Returns
             -------
-            `matplotlib.axes.Axes`
-                A matplotlib axes returned.
+            matplotlib.axes.Axes
+                A matplotlib Axes returned.
 
             Notes
             -----
             Export a SVG file by default.\n
             When exporting a SVG file, an TXT file with the same name containing details of firing rate and bin size will also be exported.\n
-            `show_norm` and file output are disabled when `plot_axes` takes an matplotlib axes as an argument.
+            `show_norm` and file output are disabled when `plot_axes` takes an matplotlib Axes as an argument.
             """
             IsI = np.empty(self.Nsize, dtype=object)
             for count in range(self.Nsize):
@@ -814,13 +906,13 @@ class Spiking:
                 ax.grid(True)
                 ax.legend()
             
-                if file_label == '': output_file_plot = file_name + '.svg'
-                else: output_file_plot = file_name + '_' + file_label + '.svg'
-                fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
+                if file_label == '': file_plot_path = file_name + '.svg'
+                else: file_plot_path = file_name + '_' + file_label + '.svg'
+                fig.savefig(os.path.join(self.output_path, file_plot_path)); plt.clf()
                 
-                if file_label == '': output_file_info = file_name + '.txt'
-                else: output_file_info = file_name + '_' + file_label + '.txt'
-                with open(self.output_path+output_file_info, 'w') as fp_info:
+                if file_label == '': file_info_path = file_name + '.txt'
+                else: file_info_path = file_name + '_' + file_label + '.txt'
+                with open(self.output_path+file_info_path, 'w') as fp_info:
                     fp_info.write('# Plot information #\n')
                     fp_info.write('Max ISI: {0}\nMin ISI: {1}\n'.format(np.amax(IsI), np.amin(IsI)))
                     fp_info.write('Total density by areal summation: {0}\n'.format(total_density))
@@ -836,7 +928,7 @@ class Spiking:
 
 class Compare:
     """
-    Compare spiking data from different simulations.
+    Compare neuron dynamics from spiking data of different simulations.
 
     Especially, methods like Plot.ChangeInFiringRateDistribution() can plot the changes in firing rate for neuron dynamics from altered networks.
 
@@ -863,7 +955,7 @@ class Compare:
 
     Examples
     --------
-    To start with, create a object for class `Compare` by specifying the spiking data file paths and the configuration file paths for both the original and altered networks.
+    To start with, create an object for class `Compare` by specifying the spiking data file paths and the configuration file paths for both the original and altered networks.
     Invoke object `plot` to plot the comparison.
     >>> original_spiking_data_path = 'DIV66\\\OUT_SPIK.txt'
     >>> original_config_path = 'DIV66\\\INI_CNFG'
@@ -944,28 +1036,30 @@ class Compare:
             self.number_of_plots = number_of_files - 1
             self.output_path = output_path
         
-        def ChangeInFiringRateDistribution(self, bins=[-2,12,120], label_list=[], style_list = ['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', ''], xrange=[-2,12], yrange=[None,None], yaxis_logscale=True, file_name='Change_in_Firing_Rate_Distribution', file_label=''):
+        def ChangeInFiringRateDistribution(self, bins=[-2,12,120], label_list=[], style_list = ['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', ''], xrange=[-2,12], yrange=[None,None], xaxis_logscale=False, yaxis_logscale=True, file_name='Change_in_Firing_Rate_Distribution', file_label=''):
             """
             Plot a distribution graph of changes in neuron firing rate.
 
             Parameters
             ----------
-            bins : list
-                Defines the lower, upper bounds of bins and the number of bins for histogram, in the following format: `[lower bound of bins, upper bound of bins, number of bins]`.
+            bins : list, default: [-2, 12, 120]
+                Define the lower, upper bounds of bins and the number of bins for histogram, in the following format: `[lower bound of bins, upper bound of bins, number of bins]`.
             label_list : list of str
-                Specifies the legend of the plots.
-            style_list : list of str
-                Specifies the style of the plots. Default: `['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', '']`.
-            xrange : list
-                Defines the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
-            yrange : list
-                Defines the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit. If \'yrange\' contains zero, the condition will be ingored for log scale.
-            file_name : str
-                Defines the output file name. Default: Interspike_Interval_Distribution.svg.
+                Specify the legend of the plots.
+            style_list : list of str, default: ['gs', 'ro', 'b^', 'mX', 'cD', 'yP', '', '', '', '']
+                Specify the style of the plots.
+            xrange : list, default: [-2, 12]
+                Define the lower, upper limits for x-axis. Set corresponding element to `None` to remove limit.
+            yrange : list, default: [None, None]
+                Define the lower, upper limits for y-axis. Set corresponding element to `None` to remove limit. If \'yrange\' contains zero, the condition will be ingored for log scale.
+            xaxis_logscale : bool, default: False
+                Set the x-axis into log scale.
+            yaxis_logscale : bool, default: True
+                Set the y-axis into log scale.
+            file_name : str, default: 'Change_in_Firing_Rate_Distribution'
+                Output file name.
             file_label : str
-                Appends a label / tag at the end of the file name.
-            plot_axes
-                Takes the MATPLOTLIB 'axes' as input. Suppressed all file output functions when used. Plots will be return directly by the method, instead of exporting a file.
+                Append a label / tag at the end of the file name.
             """
             if np.amax(self.ChangeInFiringRate) > bins[1]: print('Warning! Maximum of Change in Firing Rate exceeds upper bound of bins range. Max Change: {:.5}; Max bins range: {:.5}'.format(np.amax(self.ChangeInFiringRate), float(bins[1])))
             if np.amin(self.ChangeInFiringRate) < bins[0]: print('Warning! Minimum of Change in Firing Rate subceeds lower bound of bins range. Min Change: {:.5}; Min bins range: {:.5}'.format(np.amin(self.ChangeInFiringRate), float(bins[0])))
@@ -988,18 +1082,19 @@ class Compare:
                     # # Or to use the following line without removing zero points
                     # ax.semilogy(x_value, hist_density[count], str(style_list[count])+'-', lw=2, label=''+str(label_list[count]))
             ax.set(xlabel='Change in firing rate (Hz)', ylabel='Probability density')
+            if xaxis_logscale == True: ax.set_xscale('log')
             ax.set_xlim(xrange[0], xrange[1])
             ax.set_ylim(yrange[0], yrange[1])
             ax.grid(True)
             ax.legend()
 
-            if file_label == '': output_file_plot = file_name + '.svg'
-            else: output_file_plot = file_name + '_' + file_label + '.svg'
-            fig.savefig(os.path.join(self.output_path, output_file_plot)); plt.clf()
+            if file_label == '': file_plot_path = file_name + '.svg'
+            else: file_plot_path = file_name + '_' + file_label + '.svg'
+            fig.savefig(os.path.join(self.output_path, file_plot_path)); plt.clf()
 
-            if file_label == '': output_file_info = file_name + '.txt'
-            else: output_file_info = file_name + '_' + file_label + '.txt'
-            with open(self.output_path+output_file_info, 'w') as fp_info:
+            if file_label == '': file_info_path = file_name + '.txt'
+            else: file_info_path = file_name + '_' + file_label + '.txt'
+            with open(self.output_path+file_info_path, 'w') as fp_info:
                 fp_info.write('### Plot information ###\n\n')
                 fp_info.write('Max change in firing rate: {}\nMin change in firing rate: {}\n'.format(np.amax(self.ChangeInFiringRate), np.amin(self.ChangeInFiringRate)))
                 fp_info.write('\n### Plot settings ###\n\n')

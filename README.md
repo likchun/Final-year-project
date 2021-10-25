@@ -4,6 +4,9 @@
 
 Plots and large files are here.
 
+Data and plots for T = 7500 ms, dt = 0.125 ms simulation (25 Oct)
+- [Dropbox/Results for T=7500, dt=0.125](https://www.dropbox.com/sh/d9k5av9mlri0opa/AACk1pEAOPbcOtQ5H5trrORpa?dl=0)
+
 Studying different values of T & dt (24 Oct)
 - [Dropbox/Results - varying T & dt (24-Oct).zip](https://www.dropbox.com/s/3thx932n99a9ric/Results%20-%20varying%20T%20%26%20dt%20%2824-Oct%29.zip?dl=0)
 
